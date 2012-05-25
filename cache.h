@@ -108,6 +108,13 @@ struct cache_header_v2 {
 	unsigned int hdr_entries;
 };
 
+struct cache_header_v5 {
+	unsigned int hdr_ndir;
+	unsigned int hdr_nfile;
+	unsigned int hdr_flbockoffset;
+	unsigned int hdr_nextension;
+};
+
 #define INDEX_FORMAT_LB 2
 #define INDEX_FORMAT_UB 4
 

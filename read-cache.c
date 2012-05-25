@@ -1245,7 +1245,7 @@ static int verify_hdr_version(struct cache_version_header *hdr, unsigned long si
 	if (hdr->hdr_signature != htonl(CACHE_SIGNATURE))
 		return error("bad signature");
 	hdr_version = ntohl(hdr->hdr_version);
-	if (hdr_version < 2 || 4 < hdr_version)
+	if (hdr_version < 2 || 5 < hdr_version)
 		return error("bad index version %d", hdr_version);
 	return 0;
 }
@@ -1260,6 +1260,29 @@ static int verify_hdr_v2(struct cache_version_header *hdr, unsigned long size)
 	git_SHA1_Final(sha1, &c);
 	if (hashcmp(sha1, (unsigned char *)hdr + size - 20))
 		return error("bad index file sha1 signature");
+	return 0;
+}
+
+static int verify_hdr_v5(void *mmap)
+{
+	uint32_t crc;
+	uint32_t* filecrc;
+	unsigned int header_size_v5;
+	struct cache_version_header *hdr;
+	struct cache_header_v5 *hdr_v5;
+
+	hdr = mmap;
+	hdr_v5 = mmap + sizeof(*hdr);
+	/* Size of the header + the size of the extensionoffsets */
+	header_size_v5 = sizeof(*hdr_v5)
+		+ hdr_v5->hdr_nextension * 4;
+	/* Initialize crc */
+	crc = crc32(0, NULL, 0);
+	crc = crc32(crc, (Bytef*)hdr, sizeof(*hdr));
+	crc = crc32(crc, (Bytef*)hdr_v5, header_size_v5);
+	filecrc = mmap + sizeof(*hdr) + header_size_v5;
+	if (crc != ntohl(*filecrc))
+		return error("bad index file header crc signature");
 	return 0;
 }
 
@@ -1501,10 +1524,15 @@ int read_index_from(struct index_state *istate, const char *path)
 	if (verify_hdr_version(hdr, mmap_size) < 0)
 		goto unmap;
 
-	if (verify_hdr_v2(hdr, mmap_size) < 0)
-		goto unmap;
+	if (htonl(hdr->hdr_version) != 5) {
+		if (verify_hdr_v2(hdr, mmap_size) < 0)
+			goto unmap;
 
-	read_index_v2_from(istate, st, mmap, mmap_size);
+		read_index_v2_from(istate, st, mmap, mmap_size);
+	} else {
+		if (verify_hdr_v5(hdr) < 0)
+			goto unmap;
+	}
 
 	munmap(mmap, mmap_size);
 	return istate->cache_nr;
