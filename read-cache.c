@@ -1230,6 +1230,18 @@ struct ondisk_cache_entry_extended {
 	char name[FLEX_ARRAY]; /* more */
 };
 
+struct ondisk_directory_entry {
+	unsigned int foffset;
+	unsigned int cr;
+	unsigned int ncr;
+	unsigned int nsubtrees;
+	unsigned int nfiles;
+	unsigned int nentries;
+	unsigned char sha1[20];
+	unsigned short flags;
+};
+
+
 /* These are only used for v3 or lower */
 #define align_flex_name(STRUCT,len) ((offsetof(struct STRUCT,name) + (len) + 8) & ~7)
 #define ondisk_cache_entry_size(len) align_flex_name(ondisk_cache_entry,len)
@@ -1355,6 +1367,25 @@ static struct cache_entry *cache_entry_from_ondisk(struct ondisk_cache_entry *on
 	return ce;
 }
 
+static struct directory_entry *directory_entry_from_ondisk(struct ondisk_directory_entry *ondisk,
+						   const char *name,
+						   size_t len)
+{
+	struct directory_entry *de = xmalloc(directory_entry_size(len));
+
+	memcpy(de->pathname, name, len);
+	de->pathname[len] = '\0';
+	de->de_flags = ntoh_s(ondisk->flags);
+	de->de_foffset = ntoh_l(ondisk->foffset);
+	de->de_cr = ntoh_l(ondisk->cr);
+	de->de_ncr = ntoh_l(ondisk->ncr);
+	de->de_nsubtrees = ntoh_l(ondisk->nsubtrees);
+	de->de_nfiles = ntoh_l(ondisk->nfiles);
+	de->de_nentries = ntoh_l(ondisk->nentries);
+	hashcpy(de->sha1, ondisk->sha1);
+	return de;
+}
+
 /*
  * Adjacent cache entries tend to share the leading paths, so it makes
  * sense to only store the differences in later entries.  In the v4
@@ -1422,7 +1453,71 @@ static struct cache_entry *create_from_disk(struct ondisk_cache_entry *ondisk,
 	return ce;
 }
 
-void read_index_v2_from(struct index_state *istate, struct stat st, void *mmap, int mmap_size)
+static struct directory_entry *read_directories_v5(unsigned int dir_offset,
+				unsigned int ndir,
+				void *mmap,
+				int mmap_size)
+{
+	int i;
+	uint32_t crc;
+	uint32_t* filecrc;
+	struct directory_entry *entries = NULL;
+	struct directory_entry *current = NULL;
+
+	for (i = 0; i < ndir; i++) {
+		struct ondisk_directory_entry *disk_de;
+		struct directory_entry *de;
+		unsigned int data_len; 
+		unsigned int len;
+		char *name;
+
+		name = (char *)mmap + dir_offset;
+		len = strlen(name) + 1;
+		disk_de = (struct ondisk_directory_entry *)
+				((char *)mmap + dir_offset + len);
+		de = directory_entry_from_ondisk(disk_de, name, len);
+
+		if (entries == NULL) {
+			entries = de;
+			current = de;
+		} else {
+			current->next = de;
+			current = current->next;
+			current->next = NULL;
+		}
+
+		/* Length of pathname + nul byte for termination + size of
+		 * members of ondisk_directory_entry. (Just using the size
+		 * of the stuct doesn't work, because there may be padding
+		 * bytes for the struct)
+		 */
+		data_len = len 
+			+ sizeof(disk_de->flags)
+			+ sizeof(disk_de->foffset)
+			+ sizeof(disk_de->cr)
+			+ sizeof(disk_de->ncr)
+			+ sizeof(disk_de->nsubtrees)
+			+ sizeof(disk_de->nfiles)
+			+ sizeof(disk_de->nentries)
+			+ sizeof(disk_de->sha1);
+
+		crc = crc32(0, NULL, 0);
+		crc = crc32(crc, (Bytef*)(mmap + dir_offset), data_len);
+		filecrc = mmap + dir_offset + data_len;
+		if (crc != ntoh_l(*filecrc))
+			goto unmap;
+
+		dir_offset += data_len + 4; /* crc code */
+	}
+
+	return entries;
+unmap:
+	munmap(mmap, mmap_size);
+	errno = EINVAL;
+	die("directory crc doesn't match for '%s'", current->pathname);
+}
+
+void read_index_v2(struct index_state *istate, struct stat st, void *mmap, int mmap_size)
 {
 	int i;
 	unsigned long src_offset;
@@ -1484,6 +1579,48 @@ unmap:
 	die("index file corrupt");
 }
 
+void read_index_v5(struct index_state *istate, struct stat st, void *mmap, int mmap_size)
+{
+	unsigned long dir_offset;
+	struct cache_version_header *hdr;
+	struct cache_header_v5 *hdr_v5;
+	struct directory_entry *entries;
+	struct directory_entry *current;
+
+	hdr = mmap;
+	hdr_v5 = mmap + sizeof(*hdr);
+	istate->version = ntohl(hdr->hdr_version);
+	/* Not using this now, since it gives a segfault as long as no files
+	 * are read.
+	 */
+	/* istate->cache_nr = ntohl(hdr_v5->hdr_nfile); */
+	istate->cache_alloc = alloc_nr(istate->cache_nr);
+	istate->cache = xcalloc(istate->cache_alloc, sizeof(struct cache_entry *));
+	istate->initialized = 1;
+
+	/* Skip size of the header + crc sum + size of offsets */
+	dir_offset = sizeof(*hdr)
+		+ sizeof(*hdr_v5) + 4
+		+ ntohl(hdr_v5->hdr_ndir) * 4;
+	entries = read_directories_v5(dir_offset,
+			ntohl(hdr_v5->hdr_ndir), mmap, mmap_size);
+
+	current = entries;
+	while (current) {
+		printf("path: %s, flags: %i, foffset: %i, cr: %i, ncr: %i, "
+		       "nsubtrees: %i, nfiles: %i, nentries: %i, sha1: %.20s\n",
+			current->pathname, current->de_flags,
+			current->de_foffset, current->de_cr, current->de_ncr,
+			current->de_nsubtrees, current->de_nfiles,
+			current->de_nentries, current->sha1);
+		current = current->next;
+	}
+	istate->timestamp.sec = st.st_mtime;
+	istate->timestamp.nsec = ST_MTIME_NSEC(st);
+
+	return;
+}
+
 /* remember to discard_cache() before reading a different cache! */
 int read_index_from(struct index_state *istate, const char *path)
 {
@@ -1528,10 +1665,12 @@ int read_index_from(struct index_state *istate, const char *path)
 		if (verify_hdr_v2(hdr, mmap_size) < 0)
 			goto unmap;
 
-		read_index_v2_from(istate, st, mmap, mmap_size);
+		read_index_v2(istate, st, mmap, mmap_size);
 	} else {
 		if (verify_hdr_v5(hdr) < 0)
 			goto unmap;
+
+		read_index_v5(istate, st, mmap, mmap_size);
 	}
 
 	munmap(mmap, mmap_size);

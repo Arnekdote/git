@@ -144,6 +144,19 @@ struct cache_entry {
 	char name[FLEX_ARRAY]; /* more */
 };
 
+struct directory_entry {
+	unsigned short de_flags;
+	unsigned int de_foffset;
+	unsigned int de_cr;
+	unsigned int de_ncr;
+	unsigned int de_nsubtrees;
+	unsigned int de_nfiles;
+	unsigned int de_nentries;
+	unsigned char sha1[20];
+	struct directory_entry *next;
+	char pathname[FLEX_ARRAY];
+};
+
 #define CE_NAMEMASK  (0x0fff)
 #define CE_STAGEMASK (0x3000)
 #define CE_EXTENDED  (0x4000)
@@ -275,6 +288,7 @@ static inline unsigned int canon_mode(unsigned int mode)
 }
 
 #define cache_entry_size(len) (offsetof(struct cache_entry,name) + (len) + 1)
+#define directory_entry_size(len) (offsetof(struct directory_entry,pathname) + (len) + 1)
 
 struct index_state {
 	struct cache_entry **cache;
@@ -450,7 +464,8 @@ extern int init_db(const char *template_dir, unsigned int flags);
 /* Initialize and use the cache information */
 extern int read_index(struct index_state *);
 extern int read_index_preload(struct index_state *, const char **pathspec);
-extern void read_index_v2_from(struct index_state *, struct stat, void *mmap, int);
+extern void read_index_v2(struct index_state *, struct stat, void *mmap, int);
+extern void read_index_v5(struct index_state *, struct stat, void *mmap, int);
 extern int read_index_from(struct index_state *, const char *path);
 extern int is_index_unborn(struct index_state *);
 extern int read_index_unmerged(struct index_state *);
