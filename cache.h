@@ -233,7 +233,11 @@ static inline unsigned create_ce_flags(size_t len, unsigned stage)
 static inline size_t ce_namelen(const struct cache_entry *ce)
 {
 	size_t len = ce->ce_flags & CE_NAMEMASK;
-	if (len < CE_NAMEMASK)
+	/* FIXME: this is a hacky fix, find another way to
+	 * calculate namelen in the index format v5
+	 * This will work until new flags are added to the format
+	 */
+	if (len < CE_NAMEMASK && len > 0)
 		return len;
 	return strlen(ce->name + CE_NAMEMASK) + CE_NAMEMASK;
 }

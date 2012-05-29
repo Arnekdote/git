@@ -1707,34 +1707,29 @@ void read_index_v5(struct index_state *istate, struct stat st, void *mmap, int m
 	struct cache_version_header *hdr;
 	struct cache_header_v5 *hdr_v5;
 	struct directory_entry *directory_entries;
-	int i;
 	int nr;
 	unsigned int foffsetblock;
 
 	hdr = mmap;
 	hdr_v5 = mmap + sizeof(*hdr);
 	istate->version = ntohl(hdr->hdr_version);
-	/* istate->cache_nr = ntohl(hdr_v5->hdr_nfile); */
-	istate->cache_alloc = alloc_nr(ntohl(hdr_v5->hdr_nfile));
+	istate->cache_nr = ntohl(hdr_v5->hdr_nfile);
+	istate->cache_alloc = alloc_nr(istate->cache_nr);
 	istate->cache = xcalloc(istate->cache_alloc, sizeof(struct cache_entry *));
 	istate->initialized = 1;
 
 	/* Skip size of the header + crc sum + size of offsets */
-	dir_offset = sizeof(*hdr)
-		+ sizeof(*hdr_v5) + 4
-		+ ntohl(hdr_v5->hdr_ndir) * 4;
+	dir_offset = sizeof(*hdr) + sizeof(*hdr_v5) + 4 + ntohl(hdr_v5->hdr_ndir) * 4;
 	directory_entries = read_directories_v5(dir_offset,
 			ntohl(hdr_v5->hdr_ndir), mmap, mmap_size);
 
 	entry_offset = ntohl(hdr_v5->hdr_fblockoffset);
 
 	nr = 0;
-	foffsetblock = entry_offset - ntohl(hdr_v5->hdr_nfile) * 4;
+	foffsetblock = entry_offset - istate->cache_nr * 4;
 	read_entries_v5(istate, directory_entries, &entry_offset,
 			mmap, mmap_size, &nr, &foffsetblock);
-	for (i = 0; i < ntohl(hdr_v5->hdr_nfile); i++) {
-		printf("%s\n", istate->cache[i]->name);
-	}
+
 	istate->timestamp.sec = st.st_mtime;
 	istate->timestamp.nsec = ST_MTIME_NSEC(st);
 
