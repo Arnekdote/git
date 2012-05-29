@@ -1413,13 +1413,14 @@ static struct directory_entry *directory_entry_from_ondisk(struct ondisk_directo
 
 	memcpy(de->pathname, name, len);
 	de->pathname[len] = '\0';
-	de->de_flags = ntoh_s(ondisk->flags);
-	de->de_foffset = ntoh_l(ondisk->foffset);
-	de->de_cr = ntoh_l(ondisk->cr);
-	de->de_ncr = ntoh_l(ondisk->ncr);
-	de->de_nsubtrees = ntoh_l(ondisk->nsubtrees);
-	de->de_nfiles = ntoh_l(ondisk->nfiles);
-	de->de_nentries = ntoh_l(ondisk->nentries);
+	de->de_flags      = ntoh_s(ondisk->flags);
+	de->de_foffset    = ntoh_l(ondisk->foffset);
+	de->de_cr         = ntoh_l(ondisk->cr);
+	de->de_ncr        = ntoh_l(ondisk->ncr);
+	de->de_nsubtrees  = ntoh_l(ondisk->nsubtrees);
+	de->de_nfiles     = ntoh_l(ondisk->nfiles);
+	de->de_nentries   = ntoh_l(ondisk->nentries);
+	de->de_pathlen    = len;
 	hashcpy(de->sha1, ondisk->sha1);
 	return de;
 }
@@ -1554,7 +1555,7 @@ unmap:
 	die("directory crc doesn't match for '%s'", current->pathname);
 }
 
-static struct cache_entry *read_entry_v5(char *pathname,
+static struct cache_entry *read_entry_v5(struct directory_entry *de,
 			unsigned long *entry_offset,
 			void *mmap, 
 			unsigned long mmap_size,
@@ -1571,7 +1572,7 @@ static struct cache_entry *read_entry_v5(char *pathname,
 	len = strlen(name);
 	disk_ce = (struct ondisk_cache_entry_v5 *)
 			((char *)mmap + *entry_offset + len + 1);
-	ce = cache_entry_from_ondisk_v5(disk_ce, name, pathname, len + strlen(pathname));
+	ce = cache_entry_from_ondisk_v5(disk_ce, name, de->pathname, len + de->de_pathlen);
 	crc = crc32(0, (Bytef*)mmap + *foffsetblock, 4);
 	crc = crc32(crc, (Bytef*)mmap + *entry_offset, len + 1 + sizeof(*disk_ce));
 	filecrc = mmap + *entry_offset + len + 1 + sizeof(*disk_ce);
@@ -1603,7 +1604,7 @@ static struct directory_entry *read_entries_v5(struct index_state *istate,
 	current->next = NULL;
 	for (i = 0; i < directory_entry->de_nfiles; i++) {
 		struct cache_entry *ce;
-		ce = read_entry_v5(directory_entry->pathname,
+		ce = read_entry_v5(directory_entry,
 				entry_offset,
 				mmap,
 				mmap_size,

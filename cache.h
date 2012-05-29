@@ -155,6 +155,7 @@ struct directory_entry {
 	unsigned int de_nentries;
 	unsigned char sha1[20];
 	struct directory_entry *next;
+	unsigned int de_pathlen;
 	char pathname[FLEX_ARRAY];
 };
 
