@@ -397,8 +397,9 @@ int df_name_compare(const char *name1, int len1, int mode1,
 
 int cache_name_compare(const char *name1, int flags1, const char *name2, int flags2)
 {
-	int len1 = flags1 & CE_NAMEMASK;
-	int len2 = flags2 & CE_NAMEMASK;
+	/* TODO: This possibly can be replaced with something faster */
+	int len1 = strlen(name1);
+	int len2 = strlen(name2);
 	int len = len1 < len2 ? len1 : len2;
 	int cmp;
 
