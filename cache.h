@@ -111,7 +111,7 @@ struct cache_header_v2 {
 struct cache_header_v5 {
 	unsigned int hdr_ndir;
 	unsigned int hdr_nfile;
-	unsigned int hdr_flbockoffset;
+	unsigned int hdr_fblockoffset;
 	unsigned int hdr_nextension;
 };
 
@@ -139,6 +139,7 @@ struct cache_entry {
 	unsigned int ce_size;
 	unsigned int ce_flags;
 	unsigned char sha1[20];
+	int ce_stat_crc;
 	struct cache_entry *next;
 	struct cache_entry *dir_next;
 	char name[FLEX_ARRAY]; /* more */

@@ -1230,6 +1230,14 @@ struct ondisk_cache_entry_extended {
 	char name[FLEX_ARRAY]; /* more */
 };
 
+struct ondisk_cache_entry_v5 {
+	unsigned short flags;
+	unsigned short mode;
+	struct cache_time mtime;
+	int stat_crc;
+	unsigned char sha1[20];
+};
+
 struct ondisk_directory_entry {
 	unsigned int foffset;
 	unsigned int cr;
@@ -1241,6 +1249,10 @@ struct ondisk_directory_entry {
 	unsigned short flags;
 };
 
+struct file_queue {
+	struct cache_entry *ce;
+	struct file_queue *next;
+};
 
 /* These are only used for v3 or lower */
 #define align_flex_name(STRUCT,len) ((offsetof(struct STRUCT,name) + (len) + 8) & ~7)
@@ -1286,11 +1298,9 @@ static int verify_hdr_v5(void *mmap)
 	hdr = mmap;
 	hdr_v5 = mmap + sizeof(*hdr);
 	/* Size of the header + the size of the extensionoffsets */
-	header_size_v5 = sizeof(*hdr_v5)
-		+ hdr_v5->hdr_nextension * 4;
+	header_size_v5 = sizeof(*hdr_v5) + hdr_v5->hdr_nextension * 4;
 	/* Initialize crc */
-	crc = crc32(0, NULL, 0);
-	crc = crc32(crc, (Bytef*)hdr, sizeof(*hdr));
+	crc = crc32(0, (Bytef*)hdr, sizeof(*hdr));
 	crc = crc32(crc, (Bytef*)hdr_v5, header_size_v5);
 	filecrc = mmap + sizeof(*hdr) + header_size_v5;
 	if (crc != ntohl(*filecrc))
@@ -1363,6 +1373,34 @@ static struct cache_entry *cache_entry_from_ondisk(struct ondisk_cache_entry *on
 	ce->ce_flags = flags;
 	hashcpy(ce->sha1, ondisk->sha1);
 	memcpy(ce->name, name, len);
+	ce->name[len] = '\0';
+	return ce;
+}
+
+static struct cache_entry *cache_entry_from_ondisk_v5(struct ondisk_cache_entry_v5 *ondisk,
+						   char *name,
+						   char *pathname,
+						   size_t len)
+{
+	struct cache_entry *ce = xmalloc(cache_entry_size(len));
+	char *full_name;
+
+	full_name = xmalloc(sizeof(char) * (len + 1));
+	sprintf(full_name, "%s%s", pathname, name);
+	ce->ce_ctime.sec  = 0;
+	ce->ce_mtime.sec  = ntoh_l(ondisk->mtime.sec);
+	ce->ce_ctime.nsec = 0;
+	ce->ce_mtime.nsec = ntoh_l(ondisk->mtime.nsec);
+	ce->ce_dev        = 0;
+	ce->ce_ino        = 0;
+	ce->ce_mode       = ntoh_l(ondisk->mode);
+	ce->ce_uid        = 0;
+	ce->ce_gid        = 0;
+	ce->ce_size       = 0;
+	ce->ce_flags      = ntoh_l(ondisk->flags);
+	ce->ce_stat_crc   = ntoh_l(ondisk->stat_crc);
+	hashcpy(ce->sha1, ondisk->sha1);
+	memcpy(ce->name, full_name, len);
 	ce->name[len] = '\0';
 	return ce;
 }
@@ -1472,9 +1510,9 @@ static struct directory_entry *read_directories_v5(unsigned int dir_offset,
 		char *name;
 
 		name = (char *)mmap + dir_offset;
-		len = strlen(name) + 1;
+		len = strlen(name);
 		disk_de = (struct ondisk_directory_entry *)
-				((char *)mmap + dir_offset + len);
+				((char *)mmap + dir_offset + len + 1);
 		de = directory_entry_from_ondisk(disk_de, name, len);
 
 		if (entries == NULL) {
@@ -1491,7 +1529,7 @@ static struct directory_entry *read_directories_v5(unsigned int dir_offset,
 		 * of the stuct doesn't work, because there may be padding
 		 * bytes for the struct)
 		 */
-		data_len = len 
+		data_len = len + 1
 			+ sizeof(disk_de->flags)
 			+ sizeof(disk_de->foffset)
 			+ sizeof(disk_de->cr)
@@ -1501,8 +1539,7 @@ static struct directory_entry *read_directories_v5(unsigned int dir_offset,
 			+ sizeof(disk_de->nentries)
 			+ sizeof(disk_de->sha1);
 
-		crc = crc32(0, NULL, 0);
-		crc = crc32(crc, (Bytef*)(mmap + dir_offset), data_len);
+		crc = crc32(0, (Bytef*)(mmap + dir_offset), data_len);
 		filecrc = mmap + dir_offset + data_len;
 		if (crc != ntoh_l(*filecrc))
 			goto unmap;
@@ -1515,6 +1552,90 @@ unmap:
 	munmap(mmap, mmap_size);
 	errno = EINVAL;
 	die("directory crc doesn't match for '%s'", current->pathname);
+}
+
+static struct cache_entry *read_entry_v5(char *pathname,
+			unsigned long *entry_offset,
+			void *mmap, 
+			unsigned long mmap_size,
+			unsigned int *foffsetblock)
+{
+	int len;
+	char *name;
+	uint32_t crc;
+	uint32_t *filecrc;
+	struct cache_entry *ce;
+	struct ondisk_cache_entry_v5 *disk_ce;
+
+	name = (char *)mmap + *entry_offset;
+	len = strlen(name);
+	disk_ce = (struct ondisk_cache_entry_v5 *)
+			((char *)mmap + *entry_offset + len + 1);
+	ce = cache_entry_from_ondisk_v5(disk_ce, name, pathname, len + strlen(pathname));
+	crc = crc32(0, (Bytef*)mmap + *foffsetblock, 4);
+	crc = crc32(crc, (Bytef*)mmap + *entry_offset, len + 1 + sizeof(*disk_ce));
+	filecrc = mmap + *entry_offset + len + 1 + sizeof(*disk_ce);
+	if (crc != ntoh_l(*filecrc))
+		goto unmap;
+	*entry_offset += len + 1 + sizeof(*disk_ce) + 4;
+	return ce;
+unmap:
+	munmap(mmap, mmap_size);
+	errno = EINVAL;
+	die("directory crc doesn't match for '%s'", ce->name);
+}
+
+static struct directory_entry *read_entries_v5(struct index_state *istate,
+					struct directory_entry *directory_entry,
+					unsigned long *entry_offset,
+					void *mmap,
+					unsigned long mmap_size,
+					int *nr,
+					unsigned int *foffsetblock)
+{
+	struct file_queue *queue;
+	struct file_queue *current;
+	int i;
+
+	queue = xmalloc(sizeof(struct file_queue));
+	current = queue;
+	current->ce = NULL;
+	current->next = NULL;
+	for (i = 0; i < directory_entry->de_nfiles; i++) {
+		struct cache_entry *ce;
+		ce = read_entry_v5(directory_entry->pathname,
+				entry_offset,
+				mmap,
+				mmap_size,
+				foffsetblock);
+		*foffsetblock += 4;
+		current->ce = ce;
+		current->next = xmalloc(sizeof(struct file_queue));
+		current = current->next;
+		current->ce = NULL;
+		current->next = NULL;
+	}
+
+	while (queue->ce) {
+		if (directory_entry->next != NULL
+		    && strcmp(queue->ce->name, directory_entry->next->pathname) > 0) {
+			directory_entry = directory_entry->next;
+			directory_entry = read_entries_v5(istate,
+					directory_entry,
+					entry_offset,
+					mmap,
+					mmap_size,
+					nr,
+					foffsetblock);
+		} else {
+			set_index_entry(istate, *nr, queue->ce);
+			(*nr)++;
+			current = queue;
+			queue = queue->next;
+			free(current);
+		}
+	}
+	return directory_entry;
 }
 
 void read_index_v2(struct index_state *istate, struct stat st, void *mmap, int mmap_size)
@@ -1581,20 +1702,19 @@ unmap:
 
 void read_index_v5(struct index_state *istate, struct stat st, void *mmap, int mmap_size)
 {
-	unsigned long dir_offset;
+	unsigned long dir_offset, entry_offset;
 	struct cache_version_header *hdr;
 	struct cache_header_v5 *hdr_v5;
-	struct directory_entry *entries;
-	struct directory_entry *current;
+	struct directory_entry *directory_entries;
+	int i;
+	int nr;
+	unsigned int foffsetblock;
 
 	hdr = mmap;
 	hdr_v5 = mmap + sizeof(*hdr);
 	istate->version = ntohl(hdr->hdr_version);
-	/* Not using this now, since it gives a segfault as long as no files
-	 * are read.
-	 */
 	/* istate->cache_nr = ntohl(hdr_v5->hdr_nfile); */
-	istate->cache_alloc = alloc_nr(istate->cache_nr);
+	istate->cache_alloc = alloc_nr(ntohl(hdr_v5->hdr_nfile));
 	istate->cache = xcalloc(istate->cache_alloc, sizeof(struct cache_entry *));
 	istate->initialized = 1;
 
@@ -1602,18 +1722,17 @@ void read_index_v5(struct index_state *istate, struct stat st, void *mmap, int m
 	dir_offset = sizeof(*hdr)
 		+ sizeof(*hdr_v5) + 4
 		+ ntohl(hdr_v5->hdr_ndir) * 4;
-	entries = read_directories_v5(dir_offset,
+	directory_entries = read_directories_v5(dir_offset,
 			ntohl(hdr_v5->hdr_ndir), mmap, mmap_size);
 
-	current = entries;
-	while (current) {
-		printf("path: %s, flags: %i, foffset: %i, cr: %i, ncr: %i, "
-		       "nsubtrees: %i, nfiles: %i, nentries: %i, sha1: %.20s\n",
-			current->pathname, current->de_flags,
-			current->de_foffset, current->de_cr, current->de_ncr,
-			current->de_nsubtrees, current->de_nfiles,
-			current->de_nentries, current->sha1);
-		current = current->next;
+	entry_offset = ntohl(hdr_v5->hdr_fblockoffset);
+
+	nr = 0;
+	foffsetblock = entry_offset - ntohl(hdr_v5->hdr_nfile) * 4;
+	read_entries_v5(istate, directory_entries, &entry_offset,
+			mmap, mmap_size, &nr, &foffsetblock);
+	for (i = 0; i < ntohl(hdr_v5->hdr_nfile); i++) {
+		printf("%s\n", istate->cache[i]->name);
 	}
 	istate->timestamp.sec = st.st_mtime;
 	istate->timestamp.nsec = ST_MTIME_NSEC(st);
