@@ -140,6 +140,7 @@ struct cache_entry {
 	unsigned int ce_flags;
 	unsigned char sha1[20];
 	int ce_stat_crc;
+	unsigned int ce_namelen;
 	struct cache_entry *next;
 	struct cache_entry *dir_next;
 	char name[FLEX_ARRAY]; /* more */
@@ -232,14 +233,7 @@ static inline unsigned create_ce_flags(size_t len, unsigned stage)
 
 static inline size_t ce_namelen(const struct cache_entry *ce)
 {
-	size_t len = ce->ce_flags & CE_NAMEMASK;
-	/* FIXME: this is a hacky fix, find another way to
-	 * calculate namelen in the index format v5
-	 * This will work until new flags are added to the format
-	 */
-	if (len < CE_NAMEMASK && len > 0)
-		return len;
-	return strlen(ce->name + CE_NAMEMASK) + CE_NAMEMASK;
+	return ce->ce_namelen;
 }
 
 #define ce_size(ce) cache_entry_size(ce_namelen(ce))
