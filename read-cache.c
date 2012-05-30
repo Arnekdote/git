@@ -1388,7 +1388,8 @@ static struct cache_entry *cache_entry_from_ondisk_v5(struct ondisk_cache_entry_
 	char *full_name;
 
 	full_name = xmalloc(sizeof(char) * (len + 1));
-	sprintf(full_name, "%s%s", pathname, name);
+	strcpy(full_name, pathname);
+	strcat(full_name, name);
 	ce->ce_ctime.sec  = 0;
 	ce->ce_mtime.sec  = ntoh_l(ondisk->mtime.sec);
 	ce->ce_ctime.nsec = 0;
