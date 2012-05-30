@@ -1395,11 +1395,11 @@ static struct cache_entry *cache_entry_from_ondisk_v5(struct ondisk_cache_entry_
 	ce->ce_mtime.nsec = ntoh_l(ondisk->mtime.nsec);
 	ce->ce_dev        = 0;
 	ce->ce_ino        = 0;
-	ce->ce_mode       = ntoh_l(ondisk->mode);
+	ce->ce_mode       = ntoh_s(ondisk->mode);
 	ce->ce_uid        = 0;
 	ce->ce_gid        = 0;
 	ce->ce_size       = 0;
-	ce->ce_flags      = ntoh_l(ondisk->flags);
+	ce->ce_flags      = ntoh_s(ondisk->flags);
 	ce->ce_stat_crc   = ntoh_l(ondisk->stat_crc);
 	ce->ce_namelen    = len;
 	hashcpy(ce->sha1, ondisk->sha1);
