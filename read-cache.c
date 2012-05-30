@@ -1380,16 +1380,12 @@ static struct cache_entry *cache_entry_from_ondisk(struct ondisk_cache_entry *on
 }
 
 static struct cache_entry *cache_entry_from_ondisk_v5(struct ondisk_cache_entry_v5 *ondisk,
+						   struct directory_entry *de,
 						   char *name,
-						   char *pathname,
 						   size_t len)
 {
-	struct cache_entry *ce = xmalloc(cache_entry_size(len));
-	char *full_name;
+	struct cache_entry *ce = xmalloc(cache_entry_size(len + de->de_pathlen));
 
-	full_name = xmalloc(sizeof(char) * (len + 1));
-	strcpy(full_name, pathname);
-	strcat(full_name, name);
 	ce->ce_ctime.sec  = 0;
 	ce->ce_mtime.sec  = ntoh_l(ondisk->mtime.sec);
 	ce->ce_ctime.nsec = 0;
@@ -1404,8 +1400,9 @@ static struct cache_entry *cache_entry_from_ondisk_v5(struct ondisk_cache_entry_
 	ce->ce_stat_crc   = ntoh_l(ondisk->stat_crc);
 	ce->ce_namelen    = len;
 	hashcpy(ce->sha1, ondisk->sha1);
-	memcpy(ce->name, full_name, len);
-	ce->name[len] = '\0';
+	memcpy(ce->name, de->pathname, de->de_pathlen);
+	memcpy(ce->name + de->de_pathlen, name, len);
+	ce->name[len + de->de_pathlen] = '\0';
 	return ce;
 }
 
@@ -1576,7 +1573,7 @@ static struct cache_entry *read_entry_v5(struct directory_entry *de,
 	len = strlen(name);
 	disk_ce = (struct ondisk_cache_entry_v5 *)
 			((char *)mmap + *entry_offset + len + 1);
-	ce = cache_entry_from_ondisk_v5(disk_ce, name, de->pathname, len + de->de_pathlen);
+	ce = cache_entry_from_ondisk_v5(disk_ce, de, name, len);
 	crc = crc32(0, (Bytef*)mmap + *foffsetblock, 4);
 	crc = crc32(crc, (Bytef*)mmap + *entry_offset, len + 1 + sizeof(*disk_ce));
 	filecrc = mmap + *entry_offset + len + 1 + sizeof(*disk_ce);
