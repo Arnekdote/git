@@ -108,6 +108,13 @@ struct cache_header_v2 {
 	unsigned int hdr_entries;
 };
 
+struct cache_header_v5 {
+	unsigned int hdr_ndir;
+	unsigned int hdr_nfile;
+	unsigned int hdr_fblockoffset;
+	unsigned int hdr_nextension;
+};
+
 #define INDEX_FORMAT_LB 2
 #define INDEX_FORMAT_UB 4
 
@@ -132,10 +139,40 @@ struct cache_entry {
 	unsigned int ce_size;
 	unsigned int ce_flags;
 	unsigned char sha1[20];
+	uint32_t ce_stat_crc;
 	unsigned int ce_namelen;
 	struct cache_entry *next;
 	struct cache_entry *dir_next;
 	char name[FLEX_ARRAY]; /* more */
+};
+
+struct directory_entry {
+	struct directory_entry *next;
+	unsigned int de_foffset;
+	unsigned int de_cr;
+	unsigned int de_ncr;
+	unsigned int de_nsubtrees;
+	unsigned int de_nfiles;
+	unsigned int de_nentries;
+	unsigned char sha1[20];
+	unsigned short de_flags;
+	unsigned int de_pathlen;
+	char pathname[FLEX_ARRAY];
+};
+
+
+struct conflict_part {
+	struct conflict_part *next;
+	unsigned short flags;
+	unsigned short entry_mode;
+	unsigned char sha1[20];
+};
+
+struct conflict_entry {
+	unsigned int nfileconflicts;
+	struct conflict_part *entries;
+	unsigned int namelen;
+	char name[FLEX_ARRAY];
 };
 
 #define CE_NAMEMASK  (0x0fff)
@@ -143,6 +180,7 @@ struct cache_entry {
 #define CE_EXTENDED  (0x4000)
 #define CE_VALID     (0x8000)
 #define CE_STAGESHIFT 12
+#define CONFLICT_MASK (0xf0)
 
 /*
  * Range 0xFFFF0000 in ce_flags is divided into
@@ -261,6 +299,8 @@ static inline unsigned int canon_mode(unsigned int mode)
 }
 
 #define cache_entry_size(len) (offsetof(struct cache_entry,name) + (len) + 1)
+#define directory_entry_size(len) (offsetof(struct directory_entry,pathname) + (len) + 1)
+#define conflict_entry_size(len) (offsetof(struct conflict_entry,name) + (len) + 1)
 
 struct index_state {
 	struct cache_entry **cache;
@@ -437,6 +477,7 @@ extern int init_db(const char *template_dir, unsigned int flags);
 extern int read_index(struct index_state *);
 extern int read_index_preload(struct index_state *, const char **pathspec);
 extern void read_index_v2(struct index_state *, struct stat, void *mmap, int);
+extern void read_index_v5(struct index_state *, struct stat, void *mmap, int);
 extern int read_index_from(struct index_state *, const char *path);
 extern int is_index_unborn(struct index_state *);
 extern int read_index_unmerged(struct index_state *);
