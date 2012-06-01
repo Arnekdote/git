@@ -165,7 +165,7 @@ void unmerge_index(struct index_state *istate, const char **pathspec)
 
 	for (i = 0; i < istate->cache_nr; i++) {
 		struct cache_entry *ce = istate->cache[i];
-		if (!match_pathspec(pathspec, ce->name, ce_namelen(ce), 0, NULL))
+		if (!match_pathspec(pathspec, ce->name, ce->ce_namelen, 0, NULL))
 			continue;
 		i = unmerge_index_entry_at(istate, i);
 	}

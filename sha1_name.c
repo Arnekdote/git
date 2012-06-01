@@ -967,7 +967,7 @@ static void diagnose_invalid_index_path(int stage,
 		pos = -pos - 1;
 	if (pos < active_nr) {
 		ce = active_cache[pos];
-		if (ce_namelen(ce) == namelen &&
+		if (ce->ce_namelen == namelen &&
 		    !memcmp(ce->name, filename, namelen))
 			die("Path '%s' is in the index, but not at stage %d.\n"
 			    "Did you mean ':%d:%s'?",
@@ -985,7 +985,7 @@ static void diagnose_invalid_index_path(int stage,
 		pos = -pos - 1;
 	if (pos < active_nr) {
 		ce = active_cache[pos];
-		if (ce_namelen(ce) == fullnamelen &&
+		if (ce->ce_namelen == fullnamelen &&
 		    !memcmp(ce->name, fullname, fullnamelen))
 			die("Path '%s' is in the index, but not '%s'.\n"
 			    "Did you mean ':%d:%s' aka ':%d:./%s'?",
@@ -1087,7 +1087,7 @@ int get_sha1_with_context_1(const char *name, unsigned char *sha1,
 			pos = -pos - 1;
 		while (pos < active_nr) {
 			ce = active_cache[pos];
-			if (ce_namelen(ce) != namelen ||
+			if (ce->ce_namelen != namelen ||
 			    memcmp(ce->name, cp, namelen))
 				break;
 			if (ce_stage(ce) == stage) {

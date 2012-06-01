@@ -114,7 +114,7 @@ static void fill_pathspec_matches(const char **pathspec, char *seen, int specs)
 		return;
 	for (i = 0; i < active_nr; i++) {
 		struct cache_entry *ce = active_cache[i];
-		match_pathspec(pathspec, ce->name, ce_namelen(ce), 0, seen);
+		match_pathspec(pathspec, ce->name, ce->ce_namelen, 0, seen);
 	}
 }
 
@@ -163,7 +163,7 @@ static void treat_gitlinks(const char **pathspec)
 	for (i = 0; i < active_nr; i++) {
 		struct cache_entry *ce = active_cache[i];
 		if (S_ISGITLINK(ce->ce_mode)) {
-			int len = ce_namelen(ce), j;
+			int len = ce->ce_namelen, j;
 			for (j = 0; pathspec[j]; j++) {
 				int len2 = strlen(pathspec[j]);
 				if (len2 <= len || pathspec[j][len] != '/' ||

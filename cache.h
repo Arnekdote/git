@@ -132,6 +132,7 @@ struct cache_entry {
 	unsigned int ce_size;
 	unsigned int ce_flags;
 	unsigned char sha1[20];
+	unsigned int ce_namelen;
 	struct cache_entry *next;
 	struct cache_entry *dir_next;
 	char name[FLEX_ARRAY]; /* more */
@@ -208,15 +209,7 @@ static inline unsigned create_ce_flags(size_t len, unsigned stage)
 	return (len | (stage << CE_STAGESHIFT));
 }
 
-static inline size_t ce_namelen(const struct cache_entry *ce)
-{
-	size_t len = ce->ce_flags & CE_NAMEMASK;
-	if (len < CE_NAMEMASK)
-		return len;
-	return strlen(ce->name + CE_NAMEMASK) + CE_NAMEMASK;
-}
-
-#define ce_size(ce) cache_entry_size(ce_namelen(ce))
+#define ce_size(ce) cache_entry_size(ce->ce_namelen)
 #define ce_stage(ce) ((CE_STAGEMASK & (ce)->ce_flags) >> CE_STAGESHIFT)
 #define ce_uptodate(ce) ((ce)->ce_flags & CE_UPTODATE)
 #define ce_skip_worktree(ce) ((ce)->ce_flags & CE_SKIP_WORKTREE)

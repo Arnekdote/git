@@ -75,7 +75,7 @@ static void hash_index_entry(struct index_state *istate, struct cache_entry *ce)
 		return;
 	ce->ce_flags |= CE_HASHED;
 	ce->next = ce->dir_next = NULL;
-	hash = hash_name(ce->name, ce_namelen(ce));
+	hash = hash_name(ce->name, ce->ce_namelen);
 	pos = insert_hash(hash, ce, &istate->name_hash);
 	if (pos) {
 		ce->next = *pos;
@@ -125,7 +125,7 @@ static int slow_same_name(const char *name1, int len1, const char *name2, int le
 
 static int same_name(const struct cache_entry *ce, const char *name, int namelen, int icase)
 {
-	int len = ce_namelen(ce);
+	int len = ce->ce_namelen;
 
 	/*
 	 * Always do exact compare, even if we want a case-ignoring comparison;

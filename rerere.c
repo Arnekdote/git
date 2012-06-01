@@ -320,7 +320,7 @@ static int handle_cache(const char *path, unsigned char *sha1, const char *outpu
 		if (active_nr <= pos)
 			break;
 		ce = active_cache[pos++];
-		if (ce_namelen(ce) != len || memcmp(ce->name, path, len)
+		if (ce->ce_namelen != len || memcmp(ce->name, path, len)
 		    || ce_stage(ce) != i + 1)
 			break;
 		mmfile[i].ptr = read_sha1_file(ce->sha1, &type, &size);

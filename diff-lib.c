@@ -32,7 +32,7 @@ static int check_removed(const struct cache_entry *ce, struct stat *st)
 			return -1;
 		return 1;
 	}
-	if (has_symlink_leading_path(ce->name, ce_namelen(ce)))
+	if (has_symlink_leading_path(ce->name, ce->ce_namelen))
 		return 1;
 	if (S_ISDIR(st->st_mode)) {
 		unsigned char sub[20];
@@ -115,7 +115,7 @@ int run_diff_files(struct rev_info *revs, unsigned int option)
 			int num_compare_stages = 0;
 			size_t path_len;
 
-			path_len = ce_namelen(ce);
+			path_len = ce->ce_namelen;
 
 			dpath = xmalloc(combine_diff_path_size(5, path_len));
 			dpath->path = (char *) &(dpath->parent[5]);
@@ -319,7 +319,7 @@ static int show_modified(struct rev_info *revs,
 	if (revs->combine_merges && !cached &&
 	    (hashcmp(sha1, old->sha1) || hashcmp(old->sha1, new->sha1))) {
 		struct combine_diff_path *p;
-		int pathlen = ce_namelen(new);
+		int pathlen = new->ce_namelen;
 
 		p = xmalloc(combine_diff_path_size(2, pathlen));
 		p->path = (char *) &p->parent[2];

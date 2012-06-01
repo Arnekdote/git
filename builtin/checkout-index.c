@@ -55,7 +55,7 @@ static int checkout_file(const char *name, int prefix_length)
 
 	while (pos < active_nr) {
 		struct cache_entry *ce = active_cache[pos];
-		if (ce_namelen(ce) != namelen ||
+		if (ce->ce_namelen != namelen ||
 		    memcmp(ce->name, name, namelen))
 			break;
 		has_same_name = 1;
@@ -100,12 +100,12 @@ static void checkout_all(const char *prefix, int prefix_length)
 		    && (CHECKOUT_ALL != checkout_stage || !ce_stage(ce)))
 			continue;
 		if (prefix && *prefix &&
-		    (ce_namelen(ce) <= prefix_length ||
+		    (ce->ce_namelen <= prefix_length ||
 		     memcmp(prefix, ce->name, prefix_length)))
 			continue;
 		if (last_ce && to_tempfile) {
-			if (ce_namelen(last_ce) != ce_namelen(ce)
-			    || memcmp(last_ce->name, ce->name, ce_namelen(ce)))
+			if (last_ce->ce_namelen != ce->ce_namelen
+			    || memcmp(last_ce->name, ce->name, ce->ce_namelen))
 				write_tempfile_record(last_ce->name, prefix_length);
 		}
 		if (checkout_entry(ce, &state,

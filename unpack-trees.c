@@ -175,11 +175,11 @@ static void display_error_msgs(struct unpack_trees_options *o)
  */
 static void unlink_entry(struct cache_entry *ce)
 {
-	if (!check_leading_path(ce->name, ce_namelen(ce)))
+	if (!check_leading_path(ce->name, ce->ce_namelen))
 		return;
 	if (remove_or_warn(ce->ce_mode, ce->name))
 		return;
-	schedule_dir_for_removal(ce->name, ce_namelen(ce));
+	schedule_dir_for_removal(ce->name, ce->ce_namelen);
 }
 
 static struct checkout state;
@@ -324,7 +324,7 @@ static int locate_in_src_index(struct cache_entry *ce,
 			       struct unpack_trees_options *o)
 {
 	struct index_state *index = o->src_index;
-	int len = ce_namelen(ce);
+	int len = ce->ce_namelen;
 	int pos = index_name_pos(index, ce->name, len);
 	if (pos < 0)
 		pos = -1 - pos;
@@ -340,12 +340,12 @@ static void mark_ce_used_same_name(struct cache_entry *ce,
 				   struct unpack_trees_options *o)
 {
 	struct index_state *index = o->src_index;
-	int len = ce_namelen(ce);
+	int len = ce->ce_namelen;
 	int pos;
 
 	for (pos = locate_in_src_index(ce, o); pos < index->cache_nr; pos++) {
 		struct cache_entry *next = index->cache[pos];
-		if (len != ce_namelen(next) ||
+		if (len != next->ce_namelen ||
 		    memcmp(ce->name, next->name, len))
 			break;
 		mark_ce_used(next, o);
@@ -370,14 +370,14 @@ static void add_same_unmerged(struct cache_entry *ce,
 			      struct unpack_trees_options *o)
 {
 	struct index_state *index = o->src_index;
-	int len = ce_namelen(ce);
+	int len = ce->ce_namelen;
 	int pos = index_name_pos(index, ce->name, len);
 
 	if (0 <= pos)
 		die("programming error in a caller of mark_ce_used_same_name");
 	for (pos = -pos - 1; pos < index->cache_nr; pos++) {
 		struct cache_entry *next = index->cache[pos];
-		if (len != ce_namelen(next) ||
+		if (len != next->ce_namelen ||
 		    memcmp(ce->name, next->name, len))
 			break;
 		add_entry(o, next, 0, 0);
@@ -493,7 +493,7 @@ static int do_compare_entry(const struct cache_entry *ce, const struct traverse_
 			return cmp;
 	}
 	pathlen = info->pathlen;
-	ce_len = ce_namelen(ce);
+	ce_len = ce->ce_namelen;
 
 	/* If ce_len < pathlen then we must have previously hit "name == directory" entry */
 	if (ce_len < pathlen)
@@ -516,7 +516,7 @@ static int compare_entry(const struct cache_entry *ce, const struct traverse_inf
 	 * Even if the beginning compared identically, the ce should
 	 * compare as bigger than a directory leading up to it!
 	 */
-	return ce_namelen(ce) > traverse_path_len(info, n);
+	return ce->ce_namelen > traverse_path_len(info, n);
 }
 
 static int ce_in_traverse_path(const struct cache_entry *ce,
@@ -530,7 +530,7 @@ static int ce_in_traverse_path(const struct cache_entry *ce,
 	 * If ce (blob) is the same name as the path (which is a tree
 	 * we will be descending into), it won't be inside it.
 	 */
-	return (info->pathlen < ce_namelen(ce));
+	return (info->pathlen < ce->ce_namelen);
 }
 
 static struct cache_entry *create_ce_entry(const struct traverse_info *info, const struct name_entry *n, int stage)
@@ -657,7 +657,7 @@ static int find_cache_pos(struct traverse_info *info,
 		if (ce_slash)
 			ce_len = ce_slash - ce_name;
 		else
-			ce_len = ce_namelen(ce) - pfxlen;
+			ce_len = ce->ce_namelen - pfxlen;
 		cmp = name_compare(p->path, p_len, ce_name, ce_len);
 		/*
 		 * Exact match; if we have a directory we need to
@@ -938,7 +938,7 @@ static int clear_ce_flags_1(struct cache_entry **cache, int nr,
 
 		/* Non-directory */
 		dtype = ce_to_dtype(ce);
-		ret = excluded_from_list(ce->name, ce_namelen(ce), name, &dtype, el);
+		ret = excluded_from_list(ce->name, ce->ce_namelen, name, &dtype, el);
 		if (ret < 0)
 			ret = defval;
 		if (ret > 0)
@@ -1293,7 +1293,7 @@ static int verify_clean_subdirectory(struct cache_entry *ce,
 	     i < o->src_index->cache_nr;
 	     i++) {
 		struct cache_entry *ce2 = o->src_index->cache[i];
-		int len = ce_namelen(ce2);
+		int len = ce2->ce_namelen;
 		if (len < namelen ||
 		    strncmp(ce->name, ce2->name, namelen) ||
 		    ce2->name[namelen] != '/')
@@ -1411,7 +1411,7 @@ static int verify_absent_1(struct cache_entry *ce,
 	if (o->index_only || o->reset || !o->update)
 		return 0;
 
-	len = check_leading_path(ce->name, ce_namelen(ce));
+	len = check_leading_path(ce->name, ce->ce_namelen);
 	if (!len)
 		return 0;
 	else if (len > 0) {
@@ -1430,7 +1430,7 @@ static int verify_absent_1(struct cache_entry *ce,
 				     strerror(errno));
 		return 0;
 	} else {
-		return check_ok_to_remove(ce->name, ce_namelen(ce),
+		return check_ok_to_remove(ce->name, ce->ce_namelen,
 					  ce_to_dtype(ce), ce, &st,
 					  error_type, o);
 	}

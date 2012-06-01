@@ -112,7 +112,7 @@ void gitmodules_config(void)
 			pos = -1 - pos;
 			if (active_nr > pos) {  /* there is a .gitmodules */
 				const struct cache_entry *ce = active_cache[pos];
-				if (ce_namelen(ce) == 11 &&
+				if (ce->ce_namelen == 11 &&
 				    !memcmp(ce->name, ".gitmodules", 11))
 					gitmodules_is_unmerged = 1;
 			}

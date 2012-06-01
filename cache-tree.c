@@ -270,7 +270,7 @@ static int update_one(struct cache_tree *it,
 		int pathlen, sublen, subcnt;
 
 		path = ce->name;
-		pathlen = ce_namelen(ce);
+		pathlen = ce->ce_namelen;
 		if (pathlen <= baselen || memcmp(base, path, baselen))
 			break; /* at the end of this level */
 
@@ -313,7 +313,7 @@ static int update_one(struct cache_tree *it,
 		unsigned mode;
 
 		path = ce->name;
-		pathlen = ce_namelen(ce);
+		pathlen = ce->ce_namelen;
 		if (pathlen <= baselen || memcmp(base, path, baselen))
 			break; /* at the end of this level */
 

@@ -492,7 +492,7 @@ int remove_file_from_index(struct index_state *istate, const char *path)
 
 static int compare_name(struct cache_entry *ce, const char *path, int namelen)
 {
-	return namelen != ce_namelen(ce) || memcmp(path, ce->name, namelen);
+	return namelen != ce->ce_namelen || memcmp(path, ce->name, namelen);
 }
 
 static int index_name_pos_also_unmerged(struct index_state *istate,
@@ -520,8 +520,8 @@ static int index_name_pos_also_unmerged(struct index_state *istate,
 
 static int different_name(struct cache_entry *ce, struct cache_entry *alias)
 {
-	int len = ce_namelen(ce);
-	return ce_namelen(alias) != len || memcmp(ce->name, alias->name, len);
+	int len = ce->ce_namelen;
+	return alias->ce_namelen != len || memcmp(ce->name, alias->name, len);
 }
 
 /*
@@ -542,7 +542,7 @@ static struct cache_entry *create_alias_ce(struct cache_entry *ce, struct cache_
 		die("Will not add file alias '%s' ('%s' already exists in index)", ce->name, alias->name);
 
 	/* Ok, create the new entry using the name of the existing alias */
-	len = ce_namelen(alias);
+	len = alias->ce_namelen;
 	new = xcalloc(1, cache_entry_size(len));
 	memcpy(new->name, alias->name, len);
 	copy_cache_entry(new, ce);
@@ -623,7 +623,7 @@ int add_to_index(struct index_state *istate, const char *path, struct stat *st, 
 		}
 	}
 
-	alias = index_name_exists(istate, ce->name, ce_namelen(ce), ignore_case);
+	alias = index_name_exists(istate, ce->name, ce->ce_namelen, ignore_case);
 	if (alias && !ce_stage(alias) && !ie_match_stat(istate, alias, st, ce_option)) {
 		/* Nothing changed, really */
 		free(ce);
@@ -694,13 +694,13 @@ struct cache_entry *make_cache_entry(unsigned int mode,
 
 int ce_same_name(struct cache_entry *a, struct cache_entry *b)
 {
-	int len = ce_namelen(a);
-	return ce_namelen(b) == len && !memcmp(a->name, b->name, len);
+	int len = a->ce_namelen;
+	return b->ce_namelen == len && !memcmp(a->name, b->name, len);
 }
 
 int ce_path_match(const struct cache_entry *ce, const struct pathspec *pathspec)
 {
-	return match_pathspec_depth(pathspec, ce->name, ce_namelen(ce), 0, NULL);
+	return match_pathspec_depth(pathspec, ce->name, ce->ce_namelen, 0, NULL);
 }
 
 /*
@@ -772,14 +772,14 @@ static int has_file_name(struct index_state *istate,
 			 const struct cache_entry *ce, int pos, int ok_to_replace)
 {
 	int retval = 0;
-	int len = ce_namelen(ce);
+	int len = ce->ce_namelen;
 	int stage = ce_stage(ce);
 	const char *name = ce->name;
 
 	while (pos < istate->cache_nr) {
 		struct cache_entry *p = istate->cache[pos++];
 
-		if (len >= ce_namelen(p))
+		if (len >= p->ce_namelen)
 			break;
 		if (memcmp(name, p->name, len))
 			break;
@@ -807,7 +807,7 @@ static int has_dir_name(struct index_state *istate,
 	int retval = 0;
 	int stage = ce_stage(ce);
 	const char *name = ce->name;
-	const char *slash = name + ce_namelen(ce);
+	const char *slash = name + ce->ce_namelen;
 
 	for (;;) {
 		int len;
@@ -848,7 +848,7 @@ static int has_dir_name(struct index_state *istate,
 		 */
 		while (pos < istate->cache_nr) {
 			struct cache_entry *p = istate->cache[pos];
-			if ((ce_namelen(p) <= len) ||
+			if ((p->ce_namelen <= len) ||
 			    (p->name[len] != '/') ||
 			    memcmp(p->name, name, len))
 				break; /* not our subdirectory */
@@ -1235,8 +1235,8 @@ struct ondisk_cache_entry_extended {
 #define ondisk_cache_entry_size(len) align_flex_name(ondisk_cache_entry,len)
 #define ondisk_cache_entry_extended_size(len) align_flex_name(ondisk_cache_entry_extended,len)
 #define ondisk_ce_size(ce) (((ce)->ce_flags & CE_EXTENDED) ? \
-			    ondisk_cache_entry_extended_size(ce_namelen(ce)) : \
-			    ondisk_cache_entry_size(ce_namelen(ce)))
+			    ondisk_cache_entry_extended_size(ce->ce_namelen) : \
+			    ondisk_cache_entry_size(ce->ce_namelen))
 
 static int verify_hdr_version(struct cache_version_header *hdr, unsigned long size)
 {
@@ -1326,6 +1326,7 @@ static struct cache_entry *cache_entry_from_ondisk(struct ondisk_cache_entry *on
 	ce->ce_gid        = ntoh_l(ondisk->gid);
 	ce->ce_size       = ntoh_l(ondisk->size);
 	ce->ce_flags      = flags;
+	ce->ce_namelen    = len;
 	hashcpy(ce->sha1, ondisk->sha1);
 	memcpy(ce->name, name, len);
 	ce->name[len] = '\0';
@@ -1707,7 +1708,7 @@ static int ce_write_entry(git_SHA_CTX *c, int fd, struct cache_entry *ce,
 		size = ondisk_ce_size(ce);
 		ondisk = xcalloc(1, size);
 		name = copy_cache_entry_to_ondisk(ondisk, ce);
-		memcpy(name, ce->name, ce_namelen(ce));
+		memcpy(name, ce->name, ce->ce_namelen);
 	} else {
 		int common, to_remove, prefix_size;
 		unsigned char to_remove_vi[16];
@@ -1724,15 +1725,15 @@ static int ce_write_entry(git_SHA_CTX *c, int fd, struct cache_entry *ce,
 			size = offsetof(struct ondisk_cache_entry_extended, name);
 		else
 			size = offsetof(struct ondisk_cache_entry, name);
-		size += prefix_size + (ce_namelen(ce) - common + 1);
+		size += prefix_size + (ce->ce_namelen - common + 1);
 
 		ondisk = xcalloc(1, size);
 		name = copy_cache_entry_to_ondisk(ondisk, ce);
 		memcpy(name, to_remove_vi, prefix_size);
-		memcpy(name + prefix_size, ce->name + common, ce_namelen(ce) - common);
+		memcpy(name + prefix_size, ce->name + common, ce->ce_namelen - common);
 
 		strbuf_splice(previous_name, common, to_remove,
-			      ce->name + common, ce_namelen(ce) - common);
+			      ce->name + common, ce->ce_namelen - common);
 	}
 
 	result = ce_write(c, fd, ondisk, size);
@@ -1905,7 +1906,7 @@ int index_name_is_other(const struct index_state *istate, const char *name,
 	pos = -pos - 1;
 	if (pos < istate->cache_nr) {
 		struct cache_entry *ce = istate->cache[pos];
-		if (ce_namelen(ce) == namelen &&
+		if (ce->ce_namelen == namelen &&
 		    !memcmp(ce->name, name, namelen))
 			return 0; /* Yup, this one exists unmerged */
 	}

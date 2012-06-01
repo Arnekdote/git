@@ -104,7 +104,7 @@ static void show_killed_files(struct dir_struct *dir)
 				 * ent->name in the cache.  Does it expect
 				 * ent->name to be a directory?
 				 */
-				len = ce_namelen(active_cache[pos]);
+				len = active_cache[pos]->ce_namelen;
 				if ((ent->len < len) &&
 				    !strncmp(active_cache[pos]->name,
 					     ent->name, ent->len) &&
@@ -130,10 +130,10 @@ static void show_ce_entry(const char *tag, struct cache_entry *ce)
 {
 	int len = max_prefix_len;
 
-	if (len >= ce_namelen(ce))
+	if (len >= ce->ce_namelen)
 		die("git ls-files: internal error - cache entry not superset of prefix");
 
-	if (!match_pathspec(pathspec, ce->name, ce_namelen(ce), len, ps_matched))
+	if (!match_pathspec(pathspec, ce->name, ce->ce_namelen, len, ps_matched))
 		return;
 
 	if (tag && *tag && show_valid_bit &&
@@ -162,7 +162,7 @@ static void show_ce_entry(const char *tag, struct cache_entry *ce)
 		       find_unique_abbrev(ce->sha1,abbrev),
 		       ce_stage(ce));
 	}
-	write_name(ce->name, ce_namelen(ce));
+	write_name(ce->name, ce->ce_namelen);
 	if (debug_mode) {
 		printf("  ctime: %d:%d\n", ce->ce_ctime.sec, ce->ce_ctime.nsec);
 		printf("  mtime: %d:%d\n", ce->ce_mtime.sec, ce->ce_mtime.nsec);

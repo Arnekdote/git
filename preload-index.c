@@ -55,7 +55,7 @@ static void *preload_thread(void *_data)
 			continue;
 		if (!ce_path_match(ce, &pathspec))
 			continue;
-		if (threaded_has_symlink_leading_path(&cache, ce->name, ce_namelen(ce)))
+		if (threaded_has_symlink_leading_path(&cache, ce->name, ce->ce_namelen))
 			continue;
 		if (lstat(ce->name, &st))
 			continue;

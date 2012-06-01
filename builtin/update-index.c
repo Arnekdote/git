@@ -453,7 +453,7 @@ static int unresolve_one(const char *path)
 		if (pos < active_nr) {
 			struct cache_entry *ce = active_cache[pos];
 			if (ce_stage(ce) &&
-			    ce_namelen(ce) == namelen &&
+			    ce->ce_namelen == namelen &&
 			    !memcmp(ce->name, path, namelen))
 				return 0;
 		}
@@ -466,7 +466,7 @@ static int unresolve_one(const char *path)
 		pos = -pos-1;
 		if (pos < active_nr) {
 			struct cache_entry *ce = active_cache[pos];
-			if (ce_namelen(ce) == namelen &&
+			if (ce->ce_namelen == namelen &&
 			    !memcmp(ce->name, path, namelen)) {
 				fprintf(stderr,
 					"%s: skipping still unmerged path.\n",
@@ -569,7 +569,7 @@ static int do_reupdate(int ac, const char **av,
 			continue;
 		if (has_head)
 			old = read_one_ent(NULL, head_sha1,
-					   ce->name, ce_namelen(ce), 0);
+					   ce->name, ce->ce_namelen, 0);
 		if (old && ce->ce_mode == old->ce_mode &&
 		    !hashcmp(ce->sha1, old->sha1)) {
 			free(old);

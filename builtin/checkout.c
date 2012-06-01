@@ -244,7 +244,7 @@ static int checkout_paths(struct tree *source_tree, const char **pathspec,
 		struct cache_entry *ce = active_cache[pos];
 		if (source_tree && !(ce->ce_flags & CE_UPDATE))
 			continue;
-		match_pathspec(pathspec, ce->name, ce_namelen(ce), 0, ps_matched);
+		match_pathspec(pathspec, ce->name, ce->ce_namelen, 0, ps_matched);
 	}
 
 	if (report_path_error(ps_matched, pathspec, prefix))
@@ -257,7 +257,7 @@ static int checkout_paths(struct tree *source_tree, const char **pathspec,
 	/* Any unmerged paths? */
 	for (pos = 0; pos < active_nr; pos++) {
 		struct cache_entry *ce = active_cache[pos];
-		if (match_pathspec(pathspec, ce->name, ce_namelen(ce), 0, NULL)) {
+		if (match_pathspec(pathspec, ce->name, ce->ce_namelen, 0, NULL)) {
 			if (!ce_stage(ce))
 				continue;
 			if (opts->force) {
@@ -284,7 +284,7 @@ static int checkout_paths(struct tree *source_tree, const char **pathspec,
 		struct cache_entry *ce = active_cache[pos];
 		if (source_tree && !(ce->ce_flags & CE_UPDATE))
 			continue;
-		if (match_pathspec(pathspec, ce->name, ce_namelen(ce), 0, NULL)) {
+		if (match_pathspec(pathspec, ce->name, ce->ce_namelen, 0, NULL)) {
 			if (!ce_stage(ce)) {
 				errs |= checkout_entry(ce, &state, NULL);
 				continue;

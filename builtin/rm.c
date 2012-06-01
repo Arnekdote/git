@@ -171,7 +171,7 @@ int cmd_rm(int argc, const char **argv, const char *prefix)
 
 	for (i = 0; i < active_nr; i++) {
 		struct cache_entry *ce = active_cache[i];
-		if (!match_pathspec(pathspec, ce->name, ce_namelen(ce), 0, seen))
+		if (!match_pathspec(pathspec, ce->name, ce->ce_namelen, 0, seen))
 			continue;
 		ALLOC_GROW(list.name, list.nr + 1, list.alloc);
 		list.name[list.nr++] = ce->name;

@@ -128,7 +128,7 @@ int cmd_clean(int argc, const char **argv, const char *prefix)
 		pos = -pos - 1;
 		if (pos < active_nr) {
 			ce = active_cache[pos];
-			if (ce_namelen(ce) == len &&
+			if (ce->ce_namelen == len &&
 			    !memcmp(ce->name, ent->name, len))
 				continue; /* Yup, this one exists unmerged */
 		}
