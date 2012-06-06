@@ -1665,7 +1665,8 @@ static struct directory_entry *read_entries_v5(struct index_state *istate,
 					void *mmap,
 					unsigned long mmap_size,
 					int *nr,
-					unsigned int *foffsetblock)
+					unsigned int *foffsetblock,
+					int something_in_queue)
 {
 	struct entry_queue *queue, *current;
 	struct conflict_queue *conflict_queue, *conflict_current;
@@ -1781,7 +1782,8 @@ static struct directory_entry *read_entries_v5(struct index_state *istate,
 					mmap,
 					mmap_size,
 					nr,
-					foffsetblock);
+					foffsetblock,
+					1);
 		} else {
 			set_index_entry(istate, *nr, queue->ce);
 			(*nr)++;
@@ -1789,6 +1791,18 @@ static struct directory_entry *read_entries_v5(struct index_state *istate,
 			queue = queue->next;
 			free(current);
 		}
+	}
+
+	if (de->next != NULL && !something_in_queue) {
+		de = de->next;
+		de = read_entries_v5(istate,
+				de,
+				entry_offset,
+				mmap,
+				mmap_size,
+				nr,
+				foffsetblock,
+				0);
 	}
 	return de;
 }
@@ -1881,7 +1895,7 @@ void read_index_v5(struct index_state *istate, struct stat st, void *mmap, int m
 	nr = 0;
 	foffsetblock = dir_offset;
 	read_entries_v5(istate, directory_entries, &entry_offset,
-			mmap, mmap_size, &nr, &foffsetblock);
+			mmap, mmap_size, &nr, &foffsetblock, 0);
 
 	istate->timestamp.sec = st.st_mtime;
 	istate->timestamp.nsec = ST_MTIME_NSEC(st);
