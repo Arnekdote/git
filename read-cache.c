@@ -245,6 +245,11 @@ static int ce_match_stat_basic(struct cache_entry *ce, struct stat *st)
 		if (ce->ce_mtime.nsec != ST_MTIME_NSEC(*st))
 			changed |= MTIME_CHANGED;
 #endif
+		/* Racily smudged entry? */
+		if (!ce->ce_mtime.sec && !ce->ce_mtime.nsec) {
+			if (!is_empty_blob_sha1(ce->sha1))
+				changed |= DATA_CHANGED;
+		}
 	}
 	return changed;
 }
@@ -1436,7 +1441,7 @@ static struct cache_entry *cache_entry_from_ondisk_v5(struct ondisk_cache_entry_
 	ce->ce_size       = 0;
 	ce->ce_flags      = ntoh_s(ondisk->flags);
 	ce->ce_stat_crc   = ntoh_l(ondisk->stat_crc);
-	ce->ce_namelen    = len;
+	ce->ce_namelen    = de->de_pathlen + len;
 	hashcpy(ce->sha1, ondisk->sha1);
 	memcpy(ce->name, de->pathname, de->de_pathlen);
 	memcpy(ce->name + de->de_pathlen, name, len);
@@ -1697,8 +1702,8 @@ static struct directory_entry *read_entries_v5(struct index_state *istate,
 		ce = xmalloc(conflict_entry_size(len + de->de_pathlen));
 		memcpy(ce->name, de->pathname, de->de_pathlen);
 		memcpy(ce->name, name, len);
-		ce->name[len] = '\0';
-		ce->namelen = len;
+		ce->name[de->de_pathlen + len] = '\0';
+		ce->namelen = de->de_pathlen + len;
 		ce->nfileconflicts = ntoh_l(*nfileconflicts);
 		ce->entries = NULL;
 		for (k = 0; k < ce->nfileconflicts; k++) {
