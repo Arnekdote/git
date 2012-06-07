@@ -203,6 +203,48 @@ static int ce_match_stat_basic_v2(struct cache_entry *ce,
 	return changed;
 }
 
+static int ce_match_stat_basic_v5(struct cache_entry *ce,
+				struct stat *st,
+				int changed)
+{
+	uint32_t stat_crc = 0;
+	uint32_t *stat = xmalloc(sizeof(uint32_t));
+	unsigned int ctimens = 0;
+
+	if (ce->ce_mtime.sec != (unsigned int)st->st_mtime)
+		changed |= MTIME_CHANGED;
+#ifdef USE_NSEC
+	if (ce->ce_mtime.nsec != ST_MTIME_NSEC(*st))
+		changed |= MTIME_CHANGED;
+	ctimens = ce->ce_ctime.nsec;
+#endif
+	*stat = htonl(st->st_ctime);
+	stat_crc = crc32(0, (Bytef*)stat, 4);
+	*stat = htonl(ctimens);
+	stat_crc = crc32(stat_crc, (Bytef*)stat, 4);
+	*stat = htonl(st->st_ino);
+	stat_crc = crc32(stat_crc, (Bytef*)stat, 4);
+	*stat = htonl(st->st_size);
+	stat_crc = crc32(stat_crc, (Bytef*)stat, 4);
+	*stat = htonl(st->st_dev);
+	stat_crc = crc32(stat_crc, (Bytef*)stat, 4);
+	*stat = htonl(st->st_uid);
+	stat_crc = crc32(stat_crc, (Bytef*)stat, 4);
+	*stat = htonl(st->st_gid);
+	stat_crc = crc32(stat_crc, (Bytef*)stat, 4);
+
+	if (ce->ce_stat_crc != stat_crc) {
+		changed |= OWNER_CHANGED;
+		changed |= INODE_CHANGED;
+	}
+	/* Racily smudged entry? */
+	if (!ce->ce_mtime.sec && !ce->ce_mtime.nsec) {
+		if (!is_empty_blob_sha1(ce->sha1))
+			changed |= DATA_CHANGED;
+	}
+	return changed;
+}
+
 static int ce_match_stat_basic(struct cache_entry *ce, struct stat *st)
 {
 	unsigned int changed = 0;
@@ -239,17 +281,7 @@ static int ce_match_stat_basic(struct cache_entry *ce, struct stat *st)
 	if (the_index.version != 5) {
 	 	changed = ce_match_stat_basic_v2(ce, st, changed);
 	} else {
-		if (ce->ce_mtime.sec != (unsigned int)st->st_mtime)
-			changed |= MTIME_CHANGED;
-#ifdef USE_NSEC
-		if (ce->ce_mtime.nsec != ST_MTIME_NSEC(*st))
-			changed |= MTIME_CHANGED;
-#endif
-		/* Racily smudged entry? */
-		if (!ce->ce_mtime.sec && !ce->ce_mtime.nsec) {
-			if (!is_empty_blob_sha1(ce->sha1))
-				changed |= DATA_CHANGED;
-		}
+		changed = ce_match_stat_basic_v5(ce, st, changed);
 	}
 	return changed;
 }
