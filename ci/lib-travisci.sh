@@ -51,6 +51,10 @@ linux-clang|linux-gcc)
 	P4_PATH="$(pwd)/custom/p4"
 	GIT_LFS_PATH="$(pwd)/custom/git-lfs"
 	export PATH="$GIT_LFS_PATH:$P4_PATH:$PATH"
+	if test "$jobname" = linux-gcc
+	then
+		export test_configurations="GIT_TEST_SPLIT_INDEX=YesPlease"
+	fi
 	;;
 osx-clang|osx-gcc)
 	# t9810 occasionally fails on Travis CI OS X
