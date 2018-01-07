@@ -27,4 +27,5 @@ linux32 --32bit i386 su -m -l $CI_USER -c '
     cd /usr/src/git &&
     make --jobs=2 &&
     make --quiet test
+    GIT_TEST_SPLIT_INDEX=YesPlease make --quiet test
 '
