@@ -8,7 +8,7 @@
 ln -s "$cache_dir/.prove" t/.prove
 
 make --jobs=2
-make --quiet test
+cd t && ./t3903-stash.sh --stress
 if test "$jobname" = "linux-gcc"
 then
 	export GIT_TEST_SPLIT_INDEX=yes
