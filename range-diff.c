@@ -114,9 +114,11 @@ static int read_patches(const char *range, struct string_list *list)
 				util->diffsize++;
 			}
 			continue;
-		} else if (starts_with(line, "@@ "))
-			strbuf_addstr(&buf, "@@");
-		else if (!line[0] || starts_with(line, "index "))
+		} else if (skip_prefix(line, "@@ ", &p)) {
+			if (!(p = strstr(p, "@@")))
+				die(_("invalid hunk header in inner diff"));
+			strbuf_addstr(&buf, p);
+		} else if (!line[0] || starts_with(line, "index "))
 			/*
 			 * A completely blank (not ' \n', which is context)
 			 * line is not valid in a diff.  We skip it
