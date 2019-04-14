@@ -181,6 +181,85 @@ test_expect_success 'changed commit with sm config' '
 	test_cmp expected actual
 '
 
+test_expect_success 'renamed file' '
+	git range-diff --no-color --submodule=log topic...renamed-file >actual &&
+	cat >expected <<-EOF &&
+	1:  4de457d = 1:  f258d75 s/5/A/
+	2:  fccce22 ! 2:  017b62d s/4/A/
+	    @@
+	     Author: Thomas Rast <trast@inf.ethz.ch>
+	     
+	    -    s/4/A/
+	    +    s/4/A/ + rename file
+	     
+	    - ## file ##
+	    + ## file -> renamed-file ##
+	     @@
+	      1
+	      2
+	3:  147e64e ! 3:  3ce7af6 s/11/B/
+	    @@
+	     
+	         s/11/B/
+	     
+	    - ## file ##
+	    + ## renamed-file ##
+	     @@ A
+	      8
+	      9
+	4:  a63e992 ! 4:  1e6226b s/12/B/
+	    @@
+	     
+	         s/12/B/
+	     
+	    - ## file ##
+	    + ## renamed-file ##
+	     @@ A
+	      9
+	      10
+	EOF
+	test_cmp expected actual
+'
+
+test_expect_success 'file added and later removed' '
+	 git range-diff --no-color --submodule=log topic...added-removed >actual &&
+	cat >expected <<-EOF &&
+	1:  4de457d = 1:  096b1ba s/5/A/
+	2:  fccce22 ! 2:  d92e698 s/4/A/
+	    @@
+	     Author: Thomas Rast <trast@inf.ethz.ch>
+	     
+	    -    s/4/A/
+	    +    s/4/A/ + new-file
+	     
+	      ## file ##
+	     @@
+	    @@
+	      A
+	      6
+	      7
+	    +
+	    + ## new-file (new) ##
+	3:  147e64e ! 3:  9a1db4d s/11/B/
+	    @@
+	     Author: Thomas Rast <trast@inf.ethz.ch>
+	     
+	    -    s/11/B/
+	    +    s/11/B/ + remove file
+	     
+	      ## file ##
+	     @@ A
+	    @@
+	      12
+	      13
+	      14
+	    +
+	    + ## new-file (deleted) ##
+	4:  a63e992 = 4:  fea3b5c s/12/B/
+	EOF
+	test_cmp expected actual
+'
+
 test_expect_success 'no commits on one side' '
 	git commit --amend -m "new message" &&
 	git range-diff master HEAD@{1} HEAD
@@ -197,9 +276,9 @@ test_expect_success 'changed message' '
 	    Z
 	    +    Also a silly comment here!
 	    +
-	    Z diff --git a/file b/file
-	    Z --- a/file
-	    Z +++ b/file
+	    Z ## file ##
+	    Z@@
+	    Z 1
 	3:  147e64e = 3:  b9cb956 s/11/B/
 	4:  a63e992 = 4:  8add5f1 s/12/B/
 	EOF
@@ -216,9 +295,9 @@ test_expect_success 'dual-coloring' '
 	:     <RESET>
 	:    <REVERSE><GREEN>+<RESET><BOLD>    Also a silly comment here!<RESET>
 	:    <REVERSE><GREEN>+<RESET>
-	:      diff --git a/file b/file<RESET>
-	:      --- a/file<RESET>
-	:      +++ b/file<RESET>
+	:      ## file ##<RESET>
+	:    <CYAN> @@<RESET>
+	:      1<RESET>
 	:<RED>3:  0559556 <RESET><YELLOW>!<RESET><GREEN> 3:  b9cb956<RESET><YELLOW> s/11/B/<RESET>
 	:    <REVERSE><CYAN>@@<RESET>
 	:      9<RESET>

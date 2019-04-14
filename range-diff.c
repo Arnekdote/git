@@ -10,6 +10,7 @@
 #include "commit.h"
 #include "pretty.h"
 #include "userdiff.h"
+#include "apply.h"
 
 struct patch_util {
 	/* For the search for an exact match */
@@ -95,12 +96,46 @@ static int read_patches(const char *range, struct string_list *list)
 		}
 
 		if (starts_with(line, "diff --git")) {
+			struct parse_git_header_state parse_hdr_state;
+			struct patch patch;
+			struct strbuf root = STRBUF_INIT;
+
 			in_header = 0;
 			strbuf_addch(&buf, '\n');
 			if (!util->diff_offset)
 				util->diff_offset = buf.len;
-			strbuf_addch(&buf, ' ');
-			strbuf_addstr(&buf, line);
+			memset(&parse_hdr_state, 0, sizeof(parse_hdr_state));
+			parse_hdr_state.root = &root;
+			parse_hdr_state.p_value = 1;
+			memset(&patch, 0, sizeof(patch));
+			line[len - 1] = '\n';
+			len = parse_git_header(&parse_hdr_state,
+						       line,
+						       len,
+						       size,
+						       &patch);
+			if (len < 0)
+				die(_("could not parse git header"));
+			strbuf_addstr(&buf, " ## ");
+			if (patch.is_new > 0) {
+				strbuf_addstr(&buf, patch.new_name);
+				strbuf_addstr(&buf, " (new)");
+			} else if (patch.is_delete > 0) {
+				strbuf_addstr(&buf, patch.old_name);
+				strbuf_addstr(&buf, " (deleted)");
+			} else if (patch.is_rename) {
+				strbuf_addstr(&buf, patch.old_name);
+				strbuf_addstr(&buf, " => ");
+				strbuf_addstr(&buf, patch.new_name);
+			} else
+				strbuf_addstr(&buf, patch.new_name);
+
+			if (patch.new_mode && patch.old_mode &&
+			    patch.old_mode != patch.new_mode)
+				strbuf_addf(&buf, " (mode change %06o => %06o)",
+					    patch.old_mode, patch.new_mode);
+
+			strbuf_addstr(&buf, " ##");
 		} else if (in_header) {
 			if (starts_with(line, "Author: ")) {
 				strbuf_addstr(&buf, line);
@@ -118,17 +153,13 @@ static int read_patches(const char *range, struct string_list *list)
 			if (!(p = strstr(p, "@@")))
 				die(_("invalid hunk header in inner diff"));
 			strbuf_addstr(&buf, p);
-		} else if (!line[0] || starts_with(line, "index "))
+		} else if (!line[0])
 			/*
 			 * A completely blank (not ' \n', which is context)
 			 * line is not valid in a diff.  We skip it
 			 * silently, because this neatly handles the blank
 			 * separator line between commits in git-log
 			 * output.
-			 *
-			 * We also want to ignore the diff's `index` lines
-			 * because they contain exact blob hashes in which
-			 * we are not interested.
 			 */
 			continue;
 		else if (line[0] == '>') {
