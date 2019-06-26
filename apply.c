@@ -22,12 +22,6 @@
 #include "rerere.h"
 #include "apply.h"
 
-struct parse_git_header_state {
-	struct strbuf *root;
-	int linenr;
-	int p_value;
-};
-
 static void git_apply_config(void)
 {
 	git_config_get_string_const("apply.whitespace", &apply_default_whitespace);
@@ -206,40 +200,6 @@ struct fragment {
 #define binary_patch_method leading
 #define BINARY_DELTA_DEFLATED	1
 #define BINARY_LITERAL_DEFLATED 2
-
-/*
- * This represents a "patch" to a file, both metainfo changes
- * such as creation/deletion, filemode and content changes represented
- * as a series of fragments.
- */
-struct patch {
-	char *new_name, *old_name, *def_name;
-	unsigned int old_mode, new_mode;
-	int is_new, is_delete;	/* -1 = unknown, 0 = false, 1 = true */
-	int rejected;
-	unsigned ws_rule;
-	int lines_added, lines_deleted;
-	int score;
-	int extension_linenr; /* first line specifying delete/new/rename/copy */
-	unsigned int is_toplevel_relative:1;
-	unsigned int inaccurate_eof:1;
-	unsigned int is_binary:1;
-	unsigned int is_copy:1;
-	unsigned int is_rename:1;
-	unsigned int recount:1;
-	unsigned int conflicted_threeway:1;
-	unsigned int direct_to_threeway:1;
-	unsigned int crlf_in_old:1;
-	struct fragment *fragments;
-	char *result;
-	size_t resultsize;
-	char old_oid_prefix[GIT_MAX_HEXSZ + 1];
-	char new_oid_prefix[GIT_MAX_HEXSZ + 1];
-	struct patch *next;
-
-	/* three-way fallback result */
-	struct object_id threeway_stage[3];
-};
 
 static void free_fragment_list(struct fragment *list)
 {
@@ -1321,14 +1281,13 @@ static int check_header_line(int state_linenr, struct patch *patch)
 }
 
 /* Verify that we recognize the lines following a git header */
-static int parse_git_header(struct apply_state *state,
-			    const char *line,
-			    int len,
-			    unsigned int size,
-			    struct patch *patch)
+int parse_git_header(struct parse_git_header_state *state,
+		     const char *line,
+		     int len,
+		     unsigned int size,
+		     struct patch *patch)
 {
 	unsigned long offset;
-	struct parse_git_header_state parse_hdr_state;
 
 	/* A git diff has explicit new/delete information, so we don't guess */
 	patch->is_new = 0;
@@ -1341,8 +1300,8 @@ static int parse_git_header(struct apply_state *state,
 	 * the default name from the header.
 	 */
 	patch->def_name = git_header_name(state->p_value, line, len);
-	if (patch->def_name && state->root.len) {
-		char *s = xstrfmt("%s%s", state->root.buf, patch->def_name);
+	if (patch->def_name && state->root->len) {
+		char *s = xstrfmt("%s%s", state->root->buf, patch->def_name);
 		free(patch->def_name);
 		patch->def_name = s;
 	}
@@ -1350,9 +1309,6 @@ static int parse_git_header(struct apply_state *state,
 	line += len;
 	size -= len;
 	state->linenr++;
-	parse_hdr_state.root = &state->root;
-	parse_hdr_state.linenr = state->linenr;
-	parse_hdr_state.p_value = state->p_value;
 
 	for (offset = len ; size > 0 ; offset += len, size -= len, line += len, state->linenr++) {
 		static const struct opentry {
@@ -1388,7 +1344,7 @@ static int parse_git_header(struct apply_state *state,
 			int res;
 			if (len < oplen || memcmp(p->str, line, oplen))
 				continue;
-			res = p->fn(&parse_hdr_state, line + oplen, patch);
+			res = p->fn(state, line + oplen, patch);
 			if (res < 0)
 				return -1;
 			if (check_header_line(state->linenr, patch))
@@ -1572,7 +1528,15 @@ static int find_header(struct apply_state *state,
 		 * or mode change, so we handle that specially
 		 */
 		if (!memcmp("diff --git ", line, 11)) {
-			int git_hdr_len = parse_git_header(state, line, len, size, patch);
+			struct parse_git_header_state parse_hdr_state = {
+				.root = &state->root,
+				.linenr = state->linenr,
+				.p_value = state->p_value
+			};
+
+			int git_hdr_len = parse_git_header(&parse_hdr_state, line, len, size, patch);
+			state->linenr = parse_hdr_state.linenr;
+			state->p_value = parse_hdr_state.p_value;
 			if (git_hdr_len < 0)
 				return -128;
 			if (git_hdr_len <= len)
