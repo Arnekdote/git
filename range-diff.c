@@ -46,7 +46,7 @@ static int read_patches(const char *range, struct string_list *list)
 	struct strbuf buf = STRBUF_INIT, file = STRBUF_INIT;
 	struct patch_util *util = NULL;
 	int in_header = 1;
-	char *line;
+	char *line, *current_filename = NULL;
 	int offset, len;
 	size_t size;
 
@@ -130,6 +130,12 @@ static int read_patches(const char *range, struct string_list *list)
 			} else
 				strbuf_addstr(&buf, patch.new_name);
 
+			free(current_filename);
+			if (patch.is_delete > 0)
+				current_filename = xstrdup(patch.old_name);
+			else
+				current_filename = xstrdup(patch.new_name);
+
 			if (patch.new_mode && patch.old_mode &&
 			    patch.old_mode != patch.new_mode)
 				strbuf_addf(&buf, " (mode change %06o => %06o)",
@@ -152,7 +158,13 @@ static int read_patches(const char *range, struct string_list *list)
 		} else if (skip_prefix(line, "@@ ", &p)) {
 			if (!(p = strstr(p, "@@")))
 				die(_("invalid hunk header in inner diff"));
-			strbuf_addstr(&buf, p);
+			strbuf_addstr(&buf, "@@");
+			if (current_filename) {
+				strbuf_addch(&buf, ' ');
+				strbuf_addstr(&buf, current_filename);
+				strbuf_addch(&buf, ':');
+			}
+			strbuf_addstr(&buf, p + 2);
 		} else if (!line[0])
 			/*
 			 * A completely blank (not ' \n', which is context)
