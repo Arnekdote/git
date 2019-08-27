@@ -429,6 +429,26 @@ static int run_status(struct add_i_state *s, const struct pathspec *ps,
 	return 0;
 }
 
+static int run_help(struct add_i_state *s, const struct pathspec *unused_ps,
+		    struct file_list *unused_files,
+		    struct list_options *unused_opts)
+{
+	color_fprintf_ln(stdout, s->help_color, "status        - %s",
+			 _("show paths with changes"));
+	color_fprintf_ln(stdout, s->help_color, "update        - %s",
+			 _("add working tree state to the staged set of changes"));
+	color_fprintf_ln(stdout, s->help_color, "revert        - %s",
+			 _("revert staged set of changes back to the HEAD version"));
+	color_fprintf_ln(stdout, s->help_color, "patch         - %s",
+			 _("pick hunks and update selectively"));
+	color_fprintf_ln(stdout, s->help_color, "diff          - %s",
+			 _("view diff between HEAD and index"));
+	color_fprintf_ln(stdout, s->help_color, "add untracked - %s",
+			 _("add contents of untracked files to the staged set of changes"));
+
+	return 0;
+}
+
 struct print_command_item_data {
 	const char *color, *reset;
 };
@@ -474,9 +494,11 @@ int run_add_i(struct repository *r, const struct pathspec *ps)
 		N_("What now"), command_prompt_help
 	};
 	struct command_item
-		status = { { "status" }, run_status };
+		status = { { "status" }, run_status },
+		help = { { "help" }, run_help };
 	struct command_item *commands[] = {
-		&status
+		&status,
+		&help
 	};
 
 	struct print_file_item_data print_file_item_data = {
