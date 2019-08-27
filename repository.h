@@ -157,5 +157,4 @@ int repo_read_index_unmerged(struct repository *);
  */
 void repo_update_index_if_able(struct repository *, struct lock_file *);
 
-
 #endif /* REPOSITORY_H */

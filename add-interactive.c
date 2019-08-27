@@ -259,7 +259,9 @@ int run_add_i(struct repository *r, const struct pathspec *ps)
 		    _("staged"), _("unstaged"), _("path"));
 	opts.header = header.buf;
 
-	res = run_status(r, ps, &files, &opts);
+	repo_refresh_and_write_index(r, REFRESH_QUIET, 0, 1, NULL, NULL, NULL);
+	if (run_status(r, ps, &files, &opts) < 0)
+		res = -1;
 
 	release_file_list(&files);
 	strbuf_release(&print_file_item_data.buf);
