@@ -116,20 +116,20 @@ static int read_patches(const char *range, struct string_list *list)
 			if (len < 0)
 				die(_("could not parse git header '%.*s'"), (int)len, line);
 			strbuf_addstr(&buf, " ## ");
-			if (patch.is_new > 0)
-				strbuf_addf(&buf, "%s (new)", patch.new_name);
-			else if (patch.is_delete > 0)
-				strbuf_addf(&buf, "%s (deleted)", patch.old_name);
-			else if (patch.is_rename)
-				strbuf_addf(&buf, "%s => %s", patch.old_name, patch.new_name);
-			else
-				strbuf_addstr(&buf, patch.new_name);
-
 			free(current_filename);
-			if (patch.is_delete > 0)
-				current_filename = xstrdup(patch.old_name);
-			else
+			if (patch.is_new > 0) {
+				strbuf_addf(&buf, "%s (new)", patch.new_name);
 				current_filename = xstrdup(patch.new_name);
+			} else if (patch.is_delete > 0) {
+				strbuf_addf(&buf, "%s (deleted)", patch.old_name);
+				current_filename = xstrdup(patch.old_name);
+			} else if (patch.is_rename) {
+				strbuf_addf(&buf, "%s => %s", patch.old_name, patch.new_name);
+				current_filename = xstrdup(patch.new_name);
+			} else {
+				strbuf_addstr(&buf, patch.def_name);
+				current_filename = xstrdup(patch.def_name);
+			}
 
 			if (patch.new_mode && patch.old_mode &&
 			    patch.old_mode != patch.new_mode)
