@@ -7,7 +7,7 @@ static const char show_index_usage[] =
 
 int cmd_show_index(int argc, const char **argv, const char *prefix)
 {
-	int i;
+	unsigned int i;
 	unsigned nr;
 	unsigned int version;
 	static unsigned int top_index[256];
