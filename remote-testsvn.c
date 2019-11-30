@@ -116,7 +116,7 @@ static int note2mark_cb(const struct object_id *object_oid,
 	}
 	if (parse_rev_note(msg, &note))
 		return 2;
-	if (fprintf(file, ":%d %s\n", note.rev_nr, oid_to_hex(object_oid)) < 1)
+	if (fprintf(file, ":%u %s\n", note.rev_nr, oid_to_hex(object_oid)) < 1)
 		return 3;
 	return 0;
 }

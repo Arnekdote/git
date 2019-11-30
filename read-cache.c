@@ -3562,7 +3562,7 @@ static struct index_entry_offset_table *read_ieot_extension(const char *mmap, si
 	/* validate the version is IEOT_VERSION */
 	ext_version = get_be32(index);
 	if (ext_version != IEOT_VERSION) {
-		error("invalid IEOT version %d", ext_version);
+		error("invalid IEOT version %u", ext_version);
 		return NULL;
 	}
 	index += sizeof(uint32_t);

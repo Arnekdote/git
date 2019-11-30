@@ -239,7 +239,7 @@ static void show_ce(struct repository *repo, struct dir_struct *dir,
 		if (!show_stage) {
 			fputs(tag, stdout);
 		} else {
-			printf("%s%06o %s %d\t",
+			printf("%s%06o %s %u\t",
 			       tag,
 			       ce->ce_mode,
 			       find_unique_abbrev(&ce->oid, abbrev),

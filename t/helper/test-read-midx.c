@@ -12,7 +12,7 @@ static int read_midx_file(const char *object_dir)
 	if (!m)
 		return 1;
 
-	printf("header: %08x %d %d %d\n",
+	printf("header: %08x %d %d %u\n",
 	       m->signature,
 	       m->version,
 	       m->num_chunks,
@@ -31,7 +31,7 @@ static int read_midx_file(const char *object_dir)
 	if (m->chunk_large_offsets)
 		printf(" large-offsets");
 
-	printf("\nnum_objects: %d\n", m->num_objects);
+	printf("\nnum_objects: %u\n", m->num_objects);
 
 	printf("packs:\n");
 	for (i = 0; i < m->num_packs; i++)

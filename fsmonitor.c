@@ -34,7 +34,7 @@ int read_fsmonitor_extension(struct index_state *istate, const void *data,
 	hdr_version = get_be32(index);
 	index += sizeof(uint32_t);
 	if (hdr_version != INDEX_EXTENSION_VERSION)
-		return error("bad fsmonitor version %d", hdr_version);
+		return error("bad fsmonitor version %u", hdr_version);
 
 	istate->fsmonitor_last_update = get_be64(index);
 	index += sizeof(uint64_t);

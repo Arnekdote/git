@@ -3350,7 +3350,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		depth = (1 << OE_DEPTH_BITS) - 1;
 	}
 	if (cache_max_small_delta_size >= (1U << OE_Z_DELTA_BITS)) {
-		warning(_("pack.deltaCacheLimit is too high, forcing %d"),
+		warning(_("pack.deltaCacheLimit is too high, forcing %u"),
 			(1U << OE_Z_DELTA_BITS) - 1);
 		cache_max_small_delta_size = (1U << OE_Z_DELTA_BITS) - 1;
 	}

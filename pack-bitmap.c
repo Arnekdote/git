@@ -146,7 +146,7 @@ static int load_bitmap_header(struct bitmap_index *index)
 
 	index->version = ntohs(header->version);
 	if (index->version != 1)
-		return error("Unsupported version for bitmap index file (%d)", index->version);
+		return error("Unsupported version for bitmap index file (%u)", index->version);
 
 	/* Parse known bitmap format options */
 	{
@@ -963,7 +963,7 @@ void test_bitmap_walk(struct rev_info *revs)
 	if (revs->pending.nr != 1)
 		die("you must specify exactly one commit to test");
 
-	fprintf(stderr, "Bitmap v%d test (%d entries loaded)\n",
+	fprintf(stderr, "Bitmap v%u test (%u entries loaded)\n",
 		bitmap_git->version, bitmap_git->entry_count);
 
 	root = revs->pending.objects[0].item;

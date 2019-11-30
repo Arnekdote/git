@@ -309,7 +309,7 @@ static int add_worktree(const char *path, const char *refname,
 			die_errno(_("could not create directory of '%s'"),
 				  sb_repo.buf);
 		strbuf_setlen(&sb_repo, len);
-		strbuf_addf(&sb_repo, "%d", counter);
+		strbuf_addf(&sb_repo, "%u", counter);
 	}
 	name = strrchr(sb_repo.buf, '/') + 1;
 

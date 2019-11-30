@@ -488,7 +488,7 @@ static uint32_t *paint_alloc(struct paint_info *info)
 	void *p;
 	if (!info->pool_count || size > info->end - info->free) {
 		if (size > POOL_SIZE)
-			BUG("pool size too small for %d in paint_alloc()",
+			BUG("pool size too small for %u in paint_alloc()",
 			    size);
 		info->pool_count++;
 		REALLOC_ARRAY(info->pools, info->pool_count);

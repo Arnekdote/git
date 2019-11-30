@@ -423,7 +423,7 @@ struct tree *write_tree_from_memory(struct merge_options *opt)
 		for (i = 0; i < istate->cache_nr; i++) {
 			const struct cache_entry *ce = istate->cache[i];
 			if (ce_stage(ce))
-				fprintf(stderr, "BUG: %d %.*s\n", ce_stage(ce),
+				fprintf(stderr, "BUG: %u %.*s\n", ce_stage(ce),
 					(int)ce_namelen(ce), ce->name);
 		}
 		BUG("unmerged index entries in merge-recursive.c");

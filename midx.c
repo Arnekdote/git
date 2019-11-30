@@ -554,7 +554,7 @@ static void fill_pack_entry(uint32_t pack_int_id,
 			    struct pack_midx_entry *entry)
 {
 	if (!nth_packed_object_oid(&entry->oid, p, cur_object))
-		die(_("failed to locate object %d in packfile"), cur_object);
+		die(_("failed to locate object %u in packfile"), cur_object);
 
 	entry->pack_int_id = pack_int_id;
 	entry->pack_mtime = p->mtime;

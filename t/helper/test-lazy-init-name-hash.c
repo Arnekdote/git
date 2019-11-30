@@ -81,13 +81,13 @@ static uint64_t time_runs(int try_threaded)
 			die("non-threaded code path used");
 
 		if (nr_threads_used)
-			printf("%f %f %d multi %d\n",
+			printf("%f %f %u multi %d\n",
 				   ((double)(t1 - t0))/1000000000,
 				   ((double)(t2 - t1))/1000000000,
 				   the_index.cache_nr,
 				   nr_threads_used);
 		else
-			printf("%f %f %d single\n",
+			printf("%f %f %u single\n",
 				   ((double)(t1 - t0))/1000000000,
 				   ((double)(t2 - t1))/1000000000,
 				   the_index.cache_nr);

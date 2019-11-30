@@ -927,8 +927,8 @@ void write_commit_graph(const char *obj_dir,
 		dirlen = packname.len;
 		if (report_progress) {
 			strbuf_addf(&progress_title,
-				    Q_("Finding commits for commit graph in %d pack",
-				       "Finding commits for commit graph in %d packs",
+				    Q_("Finding commits for commit graph in %u pack",
+				       "Finding commits for commit graph in %u packs",
 				       pack_indexes->nr),
 				    pack_indexes->nr);
 			oids.progress = start_delayed_progress(progress_title.buf, 0);
@@ -956,8 +956,8 @@ void write_commit_graph(const char *obj_dir,
 	if (commit_hex) {
 		if (report_progress) {
 			strbuf_addf(&progress_title,
-				    Q_("Finding commits for commit graph from %d ref",
-				       "Finding commits for commit graph from %d refs",
+				    Q_("Finding commits for commit graph from %u ref",
+				       "Finding commits for commit graph from %u refs",
 				       commit_hex->nr),
 				    commit_hex->nr);
 			progress = start_delayed_progress(progress_title.buf,
@@ -1014,7 +1014,7 @@ void write_commit_graph(const char *obj_dir,
 	stop_progress(&progress);
 
 	if (count_distinct >= GRAPH_EDGE_LAST_MASK)
-		die(_("the commit graph format cannot write %d commits"), count_distinct);
+		die(_("the commit graph format cannot write %u commits"), count_distinct);
 
 	commits.nr = 0;
 	commits.alloc = count_distinct;

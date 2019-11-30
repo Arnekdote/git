@@ -426,7 +426,7 @@ static int module_list(int argc, const char **argv, const char *prefix)
 		if (ce_stage(ce))
 			printf("%06o %s U\t", ce->ce_mode, sha1_to_hex(null_sha1));
 		else
-			printf("%06o %s %d\t", ce->ce_mode,
+			printf("%06o %s %u\t", ce->ce_mode,
 			       oid_to_hex(&ce->oid), ce_stage(ce));
 
 		fprintf(stdout, "%s\n", ce->name);
@@ -1806,7 +1806,7 @@ static int git_update_clone_config(const char *var, const char *value,
 
 static void update_submodule(struct update_clone_data *ucd)
 {
-	fprintf(stdout, "dummy %s %d\t%s\n",
+	fprintf(stdout, "dummy %s %u\t%s\n",
 		oid_to_hex(&ucd->oid),
 		ucd->just_cloned,
 		ucd->sub->path);

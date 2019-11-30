@@ -53,7 +53,7 @@ static int tr2_dst_try_auto_path(struct tr2_dst *dst, const char *tgt_prefix)
 	for (attempt_count = 0; attempt_count < MAX_AUTO_ATTEMPTS; attempt_count++) {
 		if (attempt_count > 0) {
 			strbuf_setlen(&path, base_path_len);
-			strbuf_addf(&path, ".%d", attempt_count);
+			strbuf_addf(&path, ".%u", attempt_count);
 		}
 
 		fd = open(path.buf, O_WRONLY | O_CREAT | O_EXCL, 0666);

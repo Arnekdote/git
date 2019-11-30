@@ -493,7 +493,7 @@ static void emit_other(struct blame_scoreboard *sb, struct blame_entry *ent, int
 			       ent->lno + 1 + cnt);
 		} else {
 			if (opt & OUTPUT_SHOW_SCORE)
-				printf(" %*d %02d",
+				printf(" %*u %02d",
 				       max_score_digits, ent->score,
 				       ent->suspect->refcnt);
 			if (opt & OUTPUT_SHOW_NAME)

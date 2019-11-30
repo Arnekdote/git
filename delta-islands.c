@@ -463,7 +463,7 @@ void load_delta_islands(struct repository *r)
 	for_each_ref(find_island_for_ref, NULL);
 	deduplicate_islands(r);
 
-	fprintf(stderr, _("Marked %d islands, done.\n"), island_counter);
+	fprintf(stderr, _("Marked %u islands, done.\n"), island_counter);
 }
 
 void propagate_island_marks(struct commit *commit)

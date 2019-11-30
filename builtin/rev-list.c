@@ -530,7 +530,7 @@ int cmd_rev_list(int argc, const char **argv, const char *prefix)
 				count_bitmap_commit_list(bitmap_git, &commit_count, NULL, NULL, NULL);
 				if (max_count >= 0 && max_count < commit_count)
 					commit_count = max_count;
-				printf("%d\n", commit_count);
+				printf("%u\n", commit_count);
 				free_bitmap_index(bitmap_git);
 				return 0;
 			}

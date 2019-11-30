@@ -702,7 +702,7 @@ static int run_and_feed_hook(const char *hook_name, feed_fn feed,
 			argv_array_pushf(&proc.env_array,
 				"GIT_PUSH_OPTION_%d=%s", i,
 				feed_state->push_options->items[i].string);
-		argv_array_pushf(&proc.env_array, "GIT_PUSH_OPTION_COUNT=%d",
+		argv_array_pushf(&proc.env_array, "GIT_PUSH_OPTION_COUNT=%u",
 				 feed_state->push_options->nr);
 	} else
 		argv_array_pushf(&proc.env_array, "GIT_PUSH_OPTION_COUNT");

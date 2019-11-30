@@ -108,7 +108,7 @@ static void mark_entry_for_delete(size_t pos, void *data)
 {
 	struct index_state *istate = data;
 	if (pos >= istate->cache_nr)
-		die("position for delete %d exceeds base index size %d",
+		die("position for delete %d exceeds base index size %u",
 		    (int)pos, istate->cache_nr);
 	istate->cache[pos]->ce_flags |= CE_REMOVE;
 	istate->split_index->nr_deletions++;
@@ -121,10 +121,10 @@ static void replace_entry(size_t pos, void *data)
 	struct cache_entry *dst, *src;
 
 	if (pos >= istate->cache_nr)
-		die("position for replacement %d exceeds base index size %d",
+		die("position for replacement %d exceeds base index size %u",
 		    (int)pos, istate->cache_nr);
 	if (si->nr_replacements >= si->saved_cache_nr)
-		die("too many replacements (%d vs %d)",
+		die("too many replacements (%u vs %u)",
 		    si->nr_replacements, si->saved_cache_nr);
 	dst = istate->cache[pos];
 	if (dst->ce_flags & CE_REMOVE)
@@ -166,7 +166,7 @@ void merge_base_index(struct index_state *istate)
 
 	for (i = si->nr_replacements; i < si->saved_cache_nr; i++) {
 		if (!ce_namelen(si->saved_cache[i]))
-			die("corrupt link extension, entry %d should "
+			die("corrupt link extension, entry %u should "
 			    "have non-zero length name", i);
 		add_index_entry(istate, si->saved_cache[i],
 				ADD_CACHE_OK_TO_ADD |
@@ -254,7 +254,7 @@ void prepare_to_write_split_index(struct index_state *istate)
 				continue;
 			}
 			if (ce->index > si->base->cache_nr) {
-				BUG("ce refers to a shared ce at %d, which is beyond the shared index size %d",
+				BUG("ce refers to a shared ce at %u, which is beyond the shared index size %u",
 				    ce->index, si->base->cache_nr);
 			}
 			ce->ce_flags |= CE_MATCHED; /* or "shared" */

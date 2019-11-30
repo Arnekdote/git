@@ -1734,7 +1734,7 @@ static void diagnose_invalid_index_path(struct repository *r,
 		if (ce_namelen(ce) == namelen &&
 		    !memcmp(ce->name, filename, namelen))
 			die("Path '%s' is in the index, but not at stage %d.\n"
-			    "Did you mean ':%d:%s'?",
+			    "Did you mean ':%u:%s'?",
 			    filename, stage,
 			    ce_stage(ce), filename);
 	}
@@ -1750,7 +1750,7 @@ static void diagnose_invalid_index_path(struct repository *r,
 		if (ce_namelen(ce) == fullname.len &&
 		    !memcmp(ce->name, fullname.buf, fullname.len))
 			die("Path '%s' is in the index, but not '%s'.\n"
-			    "Did you mean ':%d:%s' aka ':%d:./%s'?",
+			    "Did you mean ':%u:%s' aka ':%u:./%s'?",
 			    fullname.buf, filename,
 			    ce_stage(ce), fullname.buf,
 			    ce_stage(ce), filename);

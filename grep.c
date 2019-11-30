@@ -1424,7 +1424,7 @@ static void show_line_header(struct grep_opt *opt, const char *name,
 	}
 	if (opt->linenum) {
 		char buf[32];
-		xsnprintf(buf, sizeof(buf), "%d", lno);
+		xsnprintf(buf, sizeof(buf), "%u", lno);
 		output_color(opt, buf, strlen(buf), opt->colors[GREP_COLOR_LINENO]);
 		output_sep(opt, sign);
 	}
