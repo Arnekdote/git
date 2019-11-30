@@ -4066,7 +4066,7 @@ static void prep_temp_blob(struct index_state *istate,
 			   void *blob,
 			   unsigned long size,
 			   const struct object_id *oid,
-			   int mode)
+			   unsigned short mode)
 {
 	struct strbuf buf = STRBUF_INIT;
 	struct strbuf tempfile = STRBUF_INIT;
