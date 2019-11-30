@@ -427,7 +427,7 @@ static int run_rebase_interactive(struct rebase_options *opts,
 		break;
 	}
 	default:
-		BUG("invalid command '%d'", command);
+		BUG("invalid command '%d'", (int)command);
 	}
 
 	return ret;
@@ -1643,7 +1643,7 @@ int cmd_rebase(int argc, const char **argv, const char *prefix)
 	case ACTION_NONE:
 		break;
 	default:
-		BUG("action: %d", action);
+		BUG("action: %d", (int)action);
 	}
 
 	/* Make sure no rebase is in progress */

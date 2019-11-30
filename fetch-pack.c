@@ -1236,7 +1236,7 @@ static int process_acks(struct fetch_negotiator *negotiator,
 
 	if (reader->status != PACKET_READ_FLUSH &&
 	    reader->status != PACKET_READ_DELIM)
-		die(_("error processing acks: %d"), reader->status);
+		die(_("error processing acks: %d"), (int)reader->status);
 
 	/*
 	 * If an "acknowledgments" section is sent, a packfile is sent if and
@@ -1290,7 +1290,7 @@ static void receive_shallow_info(struct fetch_pack_args *args,
 
 	if (reader->status != PACKET_READ_FLUSH &&
 	    reader->status != PACKET_READ_DELIM)
-		die(_("error processing shallow info: %d"), reader->status);
+		die(_("error processing shallow info: %d"), (int)reader->status);
 
 	if (args->deepen || unshallow_received) {
 		/*
@@ -1347,7 +1347,7 @@ static void receive_wanted_refs(struct packet_reader *reader,
 	}
 
 	if (reader->status != PACKET_READ_DELIM)
-		die(_("error processing wanted refs: %d"), reader->status);
+		die(_("error processing wanted refs: %d"), (int)reader->status);
 }
 
 enum fetch_state {

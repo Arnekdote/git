@@ -321,7 +321,7 @@ static const char *action_name(const struct replay_opts *opts)
 	case REPLAY_INTERACTIVE_REBASE:
 		return N_("rebase -i");
 	}
-	die(_("unknown action: %d"), opts->action);
+	die(_("unknown action: %d"), (int)opts->action);
 }
 
 struct commit_message {
@@ -1599,7 +1599,7 @@ static const char *command_to_string(const enum todo_command command)
 {
 	if (command < TODO_COMMENT)
 		return todo_command_info[command].str;
-	die(_("unknown command: %d"), command);
+	die(_("unknown command: %d"), (int)command);
 }
 
 static char command_to_char(const enum todo_command command)
@@ -1709,7 +1709,7 @@ static int update_squash_messages(struct repository *r,
 		strbuf_addstr(&buf, "\n\n");
 		strbuf_add_commented_lines(&buf, body, strlen(body));
 	} else
-		return error(_("unknown command: %d"), command);
+		return error(_("unknown command: %d"), (int)command);
 	unuse_commit_buffer(commit, message);
 
 	res = write_message(buf.buf, buf.len, rebase_path_squash_msg(), 0);
@@ -3839,7 +3839,7 @@ static int pick_commits(struct repository *r,
 							arg, item->arg_len,
 							opts, res, 0);
 		} else if (!is_noop(item->command))
-			return error(_("unknown command %d"), item->command);
+			return error(_("unknown command %d"), (int)item->command);
 
 		if (reschedule) {
 			advise(_(rescheduled_advice),

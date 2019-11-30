@@ -339,7 +339,7 @@ static int atomic_push_failure(struct send_pack_args *args,
 		}
 	}
 	return error("atomic push failed for ref %s. status: %d\n",
-		     failing_ref->name, failing_ref->status);
+		     failing_ref->name, (int)failing_ref->status);
 }
 
 #define NONCE_LEN_LIMIT 256

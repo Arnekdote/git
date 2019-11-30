@@ -467,7 +467,7 @@ static int merge_one_change(struct notes_merge_options *o,
 			    "(combine_notes_cat_sort_uniq)");
 		return 0;
 	}
-	die("Unknown strategy (%i).", o->strategy);
+	die("Unknown strategy (%i).", (int)o->strategy);
 }
 
 static int merge_changes(struct notes_merge_options *o,

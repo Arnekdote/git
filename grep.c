@@ -837,7 +837,7 @@ static void dump_grep_pat(struct grep_pat *p)
 	switch (p->token) {
 	default: break;
 	case GREP_PATTERN_HEAD:
-		fprintf(stderr, "<head %d>", p->field); break;
+		fprintf(stderr, "<head %d>", (int)p->field); break;
 	case GREP_PATTERN_BODY:
 		fprintf(stderr, "<body>"); break;
 	}
@@ -926,7 +926,7 @@ static struct grep_expr *prep_header_patterns(struct grep_opt *opt)
 			BUG("a non-header pattern in grep header list.");
 		if (p->field < GREP_HEADER_FIELD_MIN ||
 		    GREP_HEADER_FIELD_MAX <= p->field)
-			BUG("unknown header field %d", p->field);
+			BUG("unknown header field %d", (int)p->field);
 		compile_regexp(p, opt);
 	}
 
@@ -1317,7 +1317,7 @@ static int match_expr_eval(struct grep_opt *opt, struct grep_expr *x, char *bol,
 				     icol, collect_hits);
 		break;
 	default:
-		die("Unexpected node type (internal error) %d", x->node);
+		die("Unexpected node type (internal error) %d", (int)x->node);
 	}
 	if (collect_hits)
 		x->hit |= h;

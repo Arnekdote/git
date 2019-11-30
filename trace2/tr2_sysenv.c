@@ -113,7 +113,7 @@ const char *tr2_sysenv_get(enum tr2_sysenv_variable var)
 const char *tr2_sysenv_display_name(enum tr2_sysenv_variable var)
 {
 	if (var >= TR2_SYSENV_MUST_BE_LAST)
-		BUG("tr2_sysenv_get invalid var '%d'", var);
+		BUG("tr2_sysenv_get invalid var '%d'", (int)var);
 
 	return tr2_sysenv_settings[var].env_var_name;
 }

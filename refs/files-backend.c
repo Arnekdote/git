@@ -187,7 +187,7 @@ static void files_reflog_path(struct files_ref_store *refs,
 		break;
 	default:
 		BUG("unknown ref type %d of ref %s",
-		    ref_type(refname), refname);
+		    (int)ref_type(refname), refname);
 	}
 }
 
@@ -210,7 +210,7 @@ static void files_ref_path(struct files_ref_store *refs,
 		break;
 	default:
 		BUG("unknown ref type %d of ref %s",
-		    ref_type(refname), refname);
+		    (int)ref_type(refname), refname);
 	}
 }
 

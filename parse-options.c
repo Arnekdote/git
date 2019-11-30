@@ -222,7 +222,7 @@ static enum parse_opt_result get_value(struct parse_opt_ctx_t *p,
 		return 0;
 
 	default:
-		BUG("opt->type %d should not happen", opt->type);
+		BUG("opt->type %d should not happen", (int)opt->type);
 	}
 }
 

@@ -46,7 +46,7 @@ static enum list_objects_filter_result filter_blobs_none(
 
 	switch (filter_situation) {
 	default:
-		BUG("unknown filter_situation: %d", filter_situation);
+		BUG("unknown filter_situation: %d", (int)filter_situation);
 
 	case LOFS_BEGIN_TREE:
 		assert(obj->type == OBJ_TREE);
@@ -144,7 +144,7 @@ static enum list_objects_filter_result filter_trees_depth(
 
 	switch (filter_situation) {
 	default:
-		BUG("unknown filter_situation: %d", filter_situation);
+		BUG("unknown filter_situation: %d", (int)filter_situation);
 
 	case LOFS_END_TREE:
 		assert(obj->type == OBJ_TREE);
@@ -241,7 +241,7 @@ static enum list_objects_filter_result filter_blobs_limit(
 
 	switch (filter_situation) {
 	default:
-		BUG("unknown filter_situation: %d", filter_situation);
+		BUG("unknown filter_situation: %d", (int)filter_situation);
 
 	case LOFS_BEGIN_TREE:
 		assert(obj->type == OBJ_TREE);
@@ -347,7 +347,7 @@ static enum list_objects_filter_result filter_sparse(
 
 	switch (filter_situation) {
 	default:
-		BUG("unknown filter_situation: %d", filter_situation);
+		BUG("unknown filter_situation: %d", (int)filter_situation);
 
 	case LOFS_BEGIN_TREE:
 		assert(obj->type == OBJ_TREE);
@@ -507,7 +507,7 @@ void *list_objects_filter__init(
 
 	if (filter_options->choice >= LOFC__COUNT)
 		BUG("invalid list-objects filter choice: %d",
-		    filter_options->choice);
+		    (int)filter_options->choice);
 
 	init_fn = s_filters[filter_options->choice];
 	if (init_fn)
