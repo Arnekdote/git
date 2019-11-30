@@ -602,7 +602,7 @@ parse_lines(struct repository *r, struct commit *commit,
 				    full_name, r->index))
 			die("malformed -L argument '%s'", range_part);
 		if ((!lines && (begin || end)) || lines < begin)
-			die("file %s has only %lu lines", name_part, lines);
+			die("file %s has only %ld lines", name_part, lines);
 		if (begin < 1)
 			begin = 1;
 		if (end < 1 || lines < end)

@@ -1028,8 +1028,8 @@ parse_done:
 				    the_repository->index))
 			usage(blame_usage);
 		if ((!lno && (top || bottom)) || lno < bottom)
-			die(Q_("file %s has only %lu line",
-			       "file %s has only %lu lines",
+			die(Q_("file %s has only %ld line",
+			       "file %s has only %ld lines",
 			       lno), path, lno);
 		if (bottom < 1)
 			bottom = 1;
