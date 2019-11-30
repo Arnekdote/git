@@ -1496,7 +1496,7 @@ void finish_all_active_slots(void)
 }
 
 /* Helpers for modifying and creating URLs */
-static inline int needs_quote(int ch)
+static inline int needs_quote(unsigned char ch)
 {
 	if (((ch >= 'A') && (ch <= 'Z'))
 			|| ((ch >= 'a') && (ch <= 'z'))
@@ -1512,7 +1512,7 @@ static char *quote_ref_url(const char *base, const char *ref)
 {
 	struct strbuf buf = STRBUF_INIT;
 	const char *cp;
-	int ch;
+	unsigned char ch;
 
 	end_url_with_slash(&buf, base);
 
