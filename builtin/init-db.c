@@ -394,7 +394,7 @@ int init_db(const char *git_dir, const char *real_git_dir,
 		 */
 		if (get_shared_repository() < 0)
 			/* force to the mode value */
-			xsnprintf(buf, sizeof(buf), "0%o", -get_shared_repository());
+			xsnprintf(buf, sizeof(buf), "0%o", (unsigned int)-get_shared_repository());
 		else if (get_shared_repository() == PERM_GROUP)
 			xsnprintf(buf, sizeof(buf), "%d", OLD_PERM_GROUP);
 		else if (get_shared_repository() == PERM_EVERYBODY)

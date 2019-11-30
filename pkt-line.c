@@ -73,7 +73,7 @@ static void packet_trace(const char *buf, unsigned int len, int write)
 		if (buf[i] >= 0x20 && buf[i] <= 0x7e)
 			strbuf_addch(&out, buf[i]);
 		else
-			strbuf_addf(&out, "\\%o", buf[i]);
+			strbuf_addf(&out, "\\%o", (unsigned char)buf[i]);
 	}
 
 	strbuf_addch(&out, '\n');
