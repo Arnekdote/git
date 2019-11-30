@@ -108,8 +108,8 @@ static void mark_entry_for_delete(size_t pos, void *data)
 {
 	struct index_state *istate = data;
 	if (pos >= istate->cache_nr)
-		die("position for delete %d exceeds base index size %u",
-		    (int)pos, istate->cache_nr);
+		die("position for delete %"PRIu64" exceeds base index size %u",
+		    pos, istate->cache_nr);
 	istate->cache[pos]->ce_flags |= CE_REMOVE;
 	istate->split_index->nr_deletions++;
 }
@@ -121,19 +121,19 @@ static void replace_entry(size_t pos, void *data)
 	struct cache_entry *dst, *src;
 
 	if (pos >= istate->cache_nr)
-		die("position for replacement %d exceeds base index size %u",
-		    (int)pos, istate->cache_nr);
+		die("position for replacement %"PRIu64" exceeds base index size %u",
+		    pos, istate->cache_nr);
 	if (si->nr_replacements >= si->saved_cache_nr)
 		die("too many replacements (%u vs %u)",
 		    si->nr_replacements, si->saved_cache_nr);
 	dst = istate->cache[pos];
 	if (dst->ce_flags & CE_REMOVE)
-		die("entry %d is marked as both replaced and deleted",
-		    (int)pos);
+		die("entry %"PRIu64" is marked as both replaced and deleted",
+		    pos);
 	src = si->saved_cache[si->nr_replacements];
 	if (ce_namelen(src))
-		die("corrupt link extension, entry %d should have "
-		    "zero length name", (int)pos);
+		die("corrupt link extension, entry %"PRIu64" should have "
+		    "zero length name", pos);
 	src->index = pos + 1;
 	src->ce_flags |= CE_UPDATE_IN_BASE;
 	src->ce_namelen = dst->ce_namelen;

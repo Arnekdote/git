@@ -670,8 +670,8 @@ static void curl_dump_header(const char *text, unsigned char *ptr, size_t size, 
 	struct strbuf out = STRBUF_INIT;
 	struct strbuf **headers, **header;
 
-	strbuf_addf(&out, "%s, %10.10ld bytes (0x%8.8lx)\n",
-		text, (long)size, (long)size);
+	strbuf_addf(&out, "%s, %10.10"PRIu64" bytes (0x%8.8lx)\n",
+		text, size, size);
 	trace_strbuf(&trace_curl, &out);
 	strbuf_reset(&out);
 	strbuf_add(&out, ptr, size);
@@ -696,8 +696,8 @@ static void curl_dump_data(const char *text, unsigned char *ptr, size_t size)
 	struct strbuf out = STRBUF_INIT;
 	unsigned int width = 60;
 
-	strbuf_addf(&out, "%s, %10.10ld bytes (0x%8.8lx)\n",
-		text, (long)size, (long)size);
+	strbuf_addf(&out, "%s, %10.10"PRIu64" bytes (0x%8.8lx)\n",
+		text, size, size);
 	trace_strbuf(&trace_curl, &out);
 
 	for (i = 0; i < size; i += width) {
