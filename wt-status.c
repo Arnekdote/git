@@ -251,7 +251,7 @@ static void wt_longstatus_print_trailer(struct wt_status *s)
 
 #define quote_path quote_path_relative
 
-static const char *wt_status_unmerged_status_string(unsigned int stagemask)
+static const char *wt_status_unmerged_status_string(int stagemask)
 {
 	switch (stagemask) {
 	case 1:
@@ -269,7 +269,7 @@ static const char *wt_status_unmerged_status_string(unsigned int stagemask)
 	case 7:
 		return _("both modified:");
 	default:
-		BUG("unhandled unmerged status %x", stagemask);
+		BUG("unhandled unmerged status %x", (unsigned int)stagemask);
 	}
 }
 
