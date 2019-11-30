@@ -2198,7 +2198,7 @@ static void wt_porcelain_v2_print_unmerged_entry(
 	const char *path_index = NULL;
 	int pos, stage, sum;
 	struct {
-		int mode;
+		unsigned int mode;
 		struct object_id oid;
 	} stages[3];
 	char *key;
