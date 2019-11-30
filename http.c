@@ -1512,7 +1512,7 @@ static char *quote_ref_url(const char *base, const char *ref)
 {
 	struct strbuf buf = STRBUF_INIT;
 	const char *cp;
-	unsigned char ch;
+	int ch;
 
 	end_url_with_slash(&buf, base);
 
