@@ -988,7 +988,7 @@ static const char *ip2str(int family, struct sockaddr *sin, socklen_t len)
 
 #ifndef NO_IPV6
 
-static int setup_named_sock(char *listen_addr, int listen_port, struct socketlist *socklist)
+static int setup_named_sock(char *listen_addr, unsigned int listen_port, struct socketlist *socklist)
 {
 	int socknum = 0;
 	char pbuf[NI_MAXSERV];
@@ -996,7 +996,7 @@ static int setup_named_sock(char *listen_addr, int listen_port, struct socketlis
 	int gai;
 	long flags;
 
-	xsnprintf(pbuf, sizeof(pbuf), "%d", listen_port);
+	xsnprintf(pbuf, sizeof(pbuf), "%u", listen_port);
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
@@ -1069,7 +1069,7 @@ static int setup_named_sock(char *listen_addr, int listen_port, struct socketlis
 
 #else /* NO_IPV6 */
 
-static int setup_named_sock(char *listen_addr, int listen_port, struct socketlist *socklist)
+static int setup_named_sock(char *listen_addr, unsigned int listen_port, struct socketlist *socklist)
 {
 	struct sockaddr_in sin;
 	int sockfd;
@@ -1126,7 +1126,7 @@ static int setup_named_sock(char *listen_addr, int listen_port, struct socketlis
 
 #endif
 
-static void socksetup(struct string_list *listen_addr, int listen_port, struct socketlist *socklist)
+static void socksetup(struct string_list *listen_addr, unsigned int listen_port, struct socketlist *socklist)
 {
 	if (!listen_addr->nr)
 		setup_named_sock(NULL, listen_port, socklist);
@@ -1250,7 +1250,7 @@ static struct credentials *prepare_credentials(const char *user_name,
 }
 #endif
 
-static int serve(struct string_list *listen_addr, int listen_port,
+static int serve(struct string_list *listen_addr, unsigned int listen_port,
     struct credentials *cred)
 {
 	struct socketlist socklist = { NULL, 0, 0 };
@@ -1269,7 +1269,7 @@ static int serve(struct string_list *listen_addr, int listen_port,
 
 int cmd_main(int argc, const char **argv)
 {
-	int listen_port = 0;
+	unsigned int listen_port = 0;
 	struct string_list listen_addr = STRING_LIST_INIT_NODUP;
 	int serve_mode = 0, inetd_mode = 0;
 	const char *pid_file = NULL, *user_name = NULL, *group_name = NULL;
