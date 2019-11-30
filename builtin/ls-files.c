@@ -167,7 +167,7 @@ static void show_killed_files(const struct index_state *istate,
 				pos = index_name_pos(istate, ent->name, ent->len);
 				if (0 <= pos)
 					BUG("killed-file %.*s not found",
-						ent->len, ent->name);
+					    (int)ent->len, ent->name);
 				pos = -pos - 1;
 				while (pos < istate->cache_nr &&
 				       ce_stage(istate->cache[pos]))

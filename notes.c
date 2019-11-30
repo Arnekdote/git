@@ -641,7 +641,7 @@ static void write_tree_entry(struct strbuf *buf, unsigned int mode,
 		const char *path, unsigned int path_len, const
 		unsigned char *hash)
 {
-	strbuf_addf(buf, "%o %.*s%c", mode, path_len, path, '\0');
+	strbuf_addf(buf, "%o %.*s%c", mode, (int)path_len, path, '\0');
 	strbuf_add(buf, hash, the_hash_algo->rawsz);
 }
 

@@ -804,10 +804,10 @@ void strbuf_utf8_align(struct strbuf *buf, align_type position, unsigned int wid
 	}
 
 	if (position == ALIGN_LEFT)
-		strbuf_addf(buf, "%-*s", width + utf8_compensation, s);
+		strbuf_addf(buf, "%-*s", (int)width + utf8_compensation, s);
 	else if (position == ALIGN_MIDDLE) {
 		int left = (width - display_len) / 2;
-		strbuf_addf(buf, "%*s%-*s", left, "", width - left + utf8_compensation, s);
+		strbuf_addf(buf, "%*s%-*s", left, "", (int)width - left + utf8_compensation, s);
 	} else if (position == ALIGN_RIGHT)
-		strbuf_addf(buf, "%*s", width + utf8_compensation, s);
+		strbuf_addf(buf, "%*s", (int)width + utf8_compensation, s);
 }
