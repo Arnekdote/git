@@ -706,7 +706,7 @@ static int verify_headers(const void *data, unsigned long size,
 		case '\0':
 			return report(options, obj,
 				FSCK_MSG_NUL_IN_HEADER,
-				"unterminated header: NUL at offset %ld", i);
+				"unterminated header: NUL at offset %lu", i);
 		case '\n':
 			if (i + 1 < size && buffer[i + 1] == '\n')
 				return 0;
