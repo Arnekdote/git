@@ -117,7 +117,7 @@ static int cmd_rename_ref(struct ref_store *refs, const char **argv)
 static int each_ref(const char *refname, const struct object_id *oid,
 		    int flags, void *cb_data)
 {
-	printf("%s %s 0x%x\n", oid_to_hex(oid), refname, flags);
+	printf("%s %s 0x%x\n", oid_to_hex(oid), refname, (unsigned int)flags);
 	return 0;
 }
 
@@ -138,7 +138,7 @@ static int cmd_resolve_ref(struct ref_store *refs, const char **argv)
 
 	ref = refs_resolve_ref_unsafe(refs, refname, resolve_flags,
 				      &oid, &flags);
-	printf("%s %s 0x%x\n", oid_to_hex(&oid), ref ? ref : "(null)", flags);
+	printf("%s %s 0x%x\n", oid_to_hex(&oid), ref ? ref : "(null)", (unsigned int)flags);
 	return ref ? 0 : 1;
 }
 
