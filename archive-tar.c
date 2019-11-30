@@ -144,7 +144,7 @@ static int stream_blocked(const struct object_id *oid)
 static void strbuf_append_ext_header(struct strbuf *sb, const char *keyword,
 				     const char *value, unsigned int valuelen)
 {
-	int len, tmp;
+	unsigned int len, tmp;
 
 	/* "%u %s=%s\n" */
 	len = 1 + 1 + strlen(keyword) + 1 + valuelen + 1;
