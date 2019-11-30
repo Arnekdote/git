@@ -1179,7 +1179,7 @@ const char *setup_git_directory_gently(int *nongit_ok)
 
 int git_config_perm(const char *var, const char *value)
 {
-	int i;
+	unsigned int i;
 	char *endptr;
 
 	if (value == NULL)
@@ -1195,7 +1195,7 @@ int git_config_perm(const char *var, const char *value)
 		return PERM_EVERYBODY;
 
 	/* Parse octal numbers */
-	i = strtol(value, &endptr, 8);
+	i = strtoul(value, &endptr, 8);
 
 	/* If not an octal number, maybe true/false? */
 	if (*endptr != 0)

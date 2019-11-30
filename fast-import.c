@@ -2961,7 +2961,7 @@ static struct object_entry *parse_treeish_dataref(const char **p)
 	return e;
 }
 
-static void print_ls(unsigned short mode, const unsigned char *hash, const char *path)
+static void print_ls(unsigned int mode, const unsigned char *hash, const char *path)
 {
 	static struct strbuf line = STRBUF_INIT;
 
