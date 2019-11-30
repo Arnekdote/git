@@ -136,10 +136,10 @@ struct untracked_cache {
 	unsigned dir_flags;
 	struct untracked_cache_dir *root;
 	/* Statistics */
-	int dir_created;
-	int gitignore_invalidated;
-	int dir_invalidated;
-	int dir_opened;
+	unsigned int dir_created;
+	unsigned int gitignore_invalidated;
+	unsigned int dir_invalidated;
+	unsigned int dir_opened;
 	/* fsmonitor invalidation data */
 	unsigned int use_fsmonitor : 1;
 };
