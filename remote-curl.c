@@ -715,7 +715,7 @@ static int run_slot(struct active_request_slot *slot,
 		if (results->curl_result != CURLE_OK) {
 			if (msg.len)
 				strbuf_addch(&msg, ' ');
-			strbuf_addf(&msg, "curl %d", results->curl_result);
+			strbuf_addf(&msg, "curl %u", results->curl_result);
 			if (curl_errorstr[0]) {
 				strbuf_addch(&msg, ' ');
 				strbuf_addstr(&msg, curl_errorstr);

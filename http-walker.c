@@ -536,7 +536,7 @@ static int fetch_object(struct walker *walker, unsigned char *hash)
 		if (missing_target(req))
 			ret = -1; /* Be silent, it is probably in a pack. */
 		else
-			ret = error("%s (curl_result = %d, http_code = %ld, sha1 = %s)",
+			ret = error("%s (curl_result = %u, http_code = %ld, sha1 = %s)",
 				    req->errorstr, req->curl_result,
 				    req->http_code, hex);
 	} else if (req->zret != Z_STREAM_END) {

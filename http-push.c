@@ -537,7 +537,7 @@ static void finish_request(struct transfer_request *request)
 			remote_dir_exists[request->obj->oid.hash[0]] = 1;
 			start_put(request);
 		} else {
-			fprintf(stderr, "MKCOL %s failed, aborting (%d/%ld)\n",
+			fprintf(stderr, "MKCOL %s failed, aborting (%u/%ld)\n",
 				oid_to_hex(&request->obj->oid),
 				request->curl_result, request->http_code);
 			request->state = ABORTED;
@@ -547,7 +547,7 @@ static void finish_request(struct transfer_request *request)
 		if (request->curl_result == CURLE_OK) {
 			start_move(request);
 		} else {
-			fprintf(stderr,	"PUT %s failed, aborting (%d/%ld)\n",
+			fprintf(stderr,	"PUT %s failed, aborting (%u/%ld)\n",
 				oid_to_hex(&request->obj->oid),
 				request->curl_result, request->http_code);
 			request->state = ABORTED;
@@ -561,7 +561,7 @@ static void finish_request(struct transfer_request *request)
 			request->obj->flags |= REMOTE;
 			release_request(request);
 		} else {
-			fprintf(stderr, "MOVE %s failed, aborting (%d/%ld)\n",
+			fprintf(stderr, "MOVE %s failed, aborting (%u/%ld)\n",
 				oid_to_hex(&request->obj->oid),
 				request->curl_result, request->http_code);
 			request->state = ABORTED;
@@ -921,7 +921,7 @@ static struct remote_lock *lock_remote(const char *path, long timeout)
 			XML_ParserFree(parser);
 		} else {
 			fprintf(stderr,
-				"error: curl result=%d, HTTP code=%ld\n",
+				"error: curl result=%u, HTTP code=%ld\n",
 				results.curl_result, results.http_code);
 		}
 	} else {
@@ -1252,7 +1252,7 @@ static int locking_available(void)
 				      repo->url);
 
 		} else {
-			error("Cannot access URL %s, return code %d",
+			error("Cannot access URL %s, return code %u",
 			      repo->url, results.curl_result);
 			lock_flags = 0;
 		}
@@ -1396,7 +1396,7 @@ static int update_remote(const struct object_id *oid, struct remote_lock *lock)
 		strbuf_release(&out_buffer.buf);
 		if (results.curl_result != CURLE_OK) {
 			fprintf(stderr,
-				"PUT error: curl result=%d, HTTP code=%ld\n",
+				"PUT error: curl result=%u, HTTP code=%ld\n",
 				results.curl_result, results.http_code);
 			/* We should attempt recovery? */
 			return 0;
@@ -1508,7 +1508,7 @@ static void update_remote_info_refs(struct remote_lock *lock)
 			run_active_slot(slot);
 			if (results.curl_result != CURLE_OK) {
 				fprintf(stderr,
-					"PUT error: curl result=%d, HTTP code=%ld\n",
+					"PUT error: curl result=%u, HTTP code=%ld\n",
 					results.curl_result, results.http_code);
 			}
 		}
@@ -1664,7 +1664,7 @@ static int delete_remote_branch(const char *pattern, int force)
 		run_active_slot(slot);
 		free(url);
 		if (results.curl_result != CURLE_OK)
-			return error("DELETE request failed (%d/%ld)",
+			return error("DELETE request failed (%u/%ld)",
 				     results.curl_result, results.http_code);
 	} else {
 		free(url);
