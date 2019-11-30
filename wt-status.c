@@ -251,7 +251,7 @@ static void wt_longstatus_print_trailer(struct wt_status *s)
 
 #define quote_path quote_path_relative
 
-static const char *wt_status_unmerged_status_string(int stagemask)
+static const char *wt_status_unmerged_status_string(unsigned int stagemask)
 {
 	switch (stagemask) {
 	case 1:
@@ -2196,7 +2196,8 @@ static void wt_porcelain_v2_print_unmerged_entry(
 	const struct cache_entry *ce;
 	struct strbuf buf_index = STRBUF_INIT;
 	const char *path_index = NULL;
-	int pos, stage, sum;
+	int pos, stage;
+	unsigned int sum;
 	struct {
 		unsigned int mode;
 		struct object_id oid;

@@ -1753,7 +1753,7 @@ static struct cache_entry *create_from_disk(struct mem_pool *ce_mem_pool,
 	len = flags & CE_NAMEMASK;
 
 	if (flags & CE_EXTENDED) {
-		int extended_flags;
+		unsigned int extended_flags;
 		extended_flags = get_be16(flagsp + 1) << 16;
 		/* We do not yet understand any bit out of CE_EXTENDED_FLAGS */
 		if (extended_flags & ~CE_EXTENDED_FLAGS)

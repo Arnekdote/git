@@ -45,7 +45,7 @@ enum commit_whence {
 struct wt_status_change_data {
 	int worktree_status;
 	int index_status;
-	int stagemask;
+	unsigned int stagemask;
 	unsigned short mode_head, mode_index, mode_worktree;
 	struct object_id oid_head, oid_index;
 	int rename_status;
